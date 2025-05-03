@@ -1,18 +1,12 @@
-export const navItems = [
+export const NAV_ITEMS = [
   {
     label: "Hjem",
     href: "/",
-  },
-  {
-    label: "Biler til salg",
-    href: "/cars",
-  },
-  {
-    label: "Om os",
-    href: "/about",
   },
   {
     label: "Kontakt os",
     href: "/contact",
   },
 ];
+
+export const LIGHT_BACKGROUND_PAGES = ["/contact"];
