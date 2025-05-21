@@ -1,7 +1,7 @@
 import { Heading, Text, Card } from "@radix-ui/themes";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import * as Checkbox from "@radix-ui/react-checkbox";
-import { Formik } from "formik";
+import { Formik, FormikHelpers } from "formik";
 import * as Yup from "yup";
 import {
   Check,
@@ -295,7 +295,10 @@ const Sell = () => {
         <Formik<FormValues>
           initialValues={initialValues}
           validationSchema={validationSchema}
-          onSubmit={async (values: FormValues) => {
+          onSubmit={async (
+            values: FormValues,
+            { setSubmitting }: FormikHelpers<FormValues>
+          ) => {
             try {
               setIsSubmitting(true);
               setError(null);
@@ -369,10 +372,22 @@ const Sell = () => {
               }
             } finally {
               setIsSubmitting(false);
+              setSubmitting(false);
             }
           }}
         >
-          {({ values, setFieldValue, handleSubmit }) => (
+          {({
+            values,
+            setFieldValue,
+            handleSubmit,
+          }: {
+            values: FormValues;
+            setFieldValue: (
+              field: string,
+              value: number | string | boolean | File[]
+            ) => void;
+            handleSubmit: (e?: React.FormEvent<HTMLFormElement>) => void;
+          }) => (
             <form className="space-y-6" onSubmit={handleSubmit}>
               <Card className="p-6">
                 <div className="space-y-6">
@@ -488,11 +503,8 @@ const Sell = () => {
                               onChange={(e) =>
                                 handleNumberInput(
                                   e,
-                                  (field, value) =>
-                                    setFieldValue(
-                                      "leaseDetails.downPayment",
-                                      value
-                                    ),
+                                  (field: string, value: number) =>
+                                    setFieldValue(field, value),
                                   "leaseDetails.downPayment"
                                 )
                               }
@@ -516,11 +528,8 @@ const Sell = () => {
                               onChange={(e) =>
                                 handleNumberInput(
                                   e,
-                                  (field, value) =>
-                                    setFieldValue(
-                                      "leaseDetails.monthlyPayment",
-                                      value
-                                    ),
+                                  (field: string, value: number) =>
+                                    setFieldValue(field, value),
                                   "leaseDetails.monthlyPayment"
                                 )
                               }
@@ -564,11 +573,8 @@ const Sell = () => {
                               onChange={(e) =>
                                 handleNumberInput(
                                   e,
-                                  (field, value) =>
-                                    setFieldValue(
-                                      "leaseDetails.residualValue",
-                                      value
-                                    ),
+                                  (field: string, value: number) =>
+                                    setFieldValue(field, value),
                                   "leaseDetails.residualValue"
                                 )
                               }
@@ -732,7 +738,7 @@ const Sell = () => {
                                     setFieldValue(
                                       "images",
                                       values.images.filter(
-                                        (_, index) =>
+                                        (_: File, index: number) =>
                                           index !==
                                           imagePreviews.findIndex(
                                             (p) => p.id === preview.id
