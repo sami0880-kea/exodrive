@@ -15,7 +15,7 @@ export const protect = async (req, res, next) => {
     if (!token) {
       return res
         .status(401)
-        .json({ message: "Not authorized to access this route" });
+        .send({ message: "Not authorized to access this route" });
     }
 
     try {
@@ -25,9 +25,9 @@ export const protect = async (req, res, next) => {
     } catch (error) {
       return res
         .status(401)
-        .json({ message: "Not authorized to access this route" });
+        .send({ message: "Not authorized to access this route" });
     }
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    res.status(500).send({ message: "Server error" });
   }
 };

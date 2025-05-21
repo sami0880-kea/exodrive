@@ -1,16 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Heading, Button } from "@radix-ui/themes";
 import * as Select from "@radix-ui/react-select";
 import * as Slider from "@radix-ui/react-slider";
 import { Search } from "lucide-react";
 import { cn } from "../lib/utils";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import config from "../config";
 
 const Home = () => {
+  const navigate = useNavigate();
   const currentYear = new Date().getFullYear();
   const [selectedBrand, setSelectedBrand] = useState<string>("");
   const [selectedModel, setSelectedModel] = useState<string>("");
   const [yearRange, setYearRange] = useState<number[]>([2000, currentYear + 1]);
   const [priceRange, setPriceRange] = useState<number[]>([0, 10000000]);
+  const [listingCount, setListingCount] = useState<number>(0);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("da-DK").format(price);
@@ -18,6 +23,49 @@ const Home = () => {
 
   const resetYearRange = () => setYearRange([2000, currentYear + 1]);
   const resetPriceRange = () => setPriceRange([0, 10000000]);
+
+  useEffect(() => {
+    const fetchListingCount = async () => {
+      try {
+        const params = new URLSearchParams();
+        if (selectedBrand) params.set("brand", selectedBrand);
+        if (selectedModel) params.set("model", selectedModel);
+        if (yearRange[0] !== 2000)
+          params.set("yearFrom", yearRange[0].toString());
+        if (yearRange[1] !== currentYear + 1)
+          params.set("yearTo", yearRange[1].toString());
+        if (priceRange[0] !== 0)
+          params.set("priceFrom", priceRange[0].toString());
+        if (priceRange[1] !== 10000000)
+          params.set("priceTo", priceRange[1].toString());
+
+        const response = await axios.get(`${config.apiUrl}/listings/count`, {
+          params,
+        });
+        setListingCount(response.data.count);
+      } catch (error) {
+        console.error("Error fetching listing count:", error);
+        setListingCount(0);
+      }
+    };
+
+    fetchListingCount();
+  }, [selectedBrand, selectedModel, yearRange, priceRange]);
+
+  const handleSearch = () => {
+    const params = new URLSearchParams();
+
+    if (selectedBrand) params.set("brand", selectedBrand);
+    if (selectedModel) params.set("model", selectedModel);
+    if (yearRange[0] !== 2000) params.set("yearFrom", yearRange[0].toString());
+    if (yearRange[1] !== currentYear + 1)
+      params.set("yearTo", yearRange[1].toString());
+    if (priceRange[0] !== 0) params.set("priceFrom", priceRange[0].toString());
+    if (priceRange[1] !== 10000000)
+      params.set("priceTo", priceRange[1].toString());
+
+    navigate(`/listings?${params.toString()}`);
+  };
 
   const brands = [
     { value: "lamborghini", label: "Lamborghini" },
@@ -390,28 +438,11 @@ const Home = () => {
                     <Button
                       className="px-8 p-2 rounded-full flex items-center justify-center gap-2 h-full"
                       size="3"
+                      onClick={handleSearch}
                     >
                       <Search size={16} />
-                      <span>Vis 48 biler</span>
+                      <span>Søg {listingCount} biler</span>
                     </Button>
-                    {/* {(selectedBrand ||
-                      selectedModel ||
-                      yearRange[0] !== 2000 ||
-                      yearRange[1] !== currentYear + 1 ||
-                      priceRange[0] !== 0 ||
-                      priceRange[1] !== 10000000) && (
-                      <button
-                        onClick={() => {
-                          setSelectedBrand("");
-                          setSelectedModel("");
-                          resetYearRange();
-                          resetPriceRange();
-                        }}
-                        className="text-sm text-gray-500 hover:text-gray-700"
-                      >
-                        Nulstil filtre
-                      </button>
-                    )} */}
                   </div>
                 </div>
               </div>

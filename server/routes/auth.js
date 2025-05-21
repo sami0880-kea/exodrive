@@ -1,9 +1,9 @@
-import express from "express";
+import { Router } from "express";
 import { body, validationResult } from "express-validator";
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 
-const router = express.Router();
+const router = Router();
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -24,14 +24,14 @@ router.post(
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
+        return res.status(400).send({ errors: errors.array() });
       }
 
       const { name, email, password } = req.body;
 
       let user = await User.findOne({ email });
       if (user) {
-        return res.status(400).json({ message: "User already exists" });
+        return res.status(400).send({ message: "User already exists" });
       }
 
       user = await User.create({
@@ -42,7 +42,7 @@ router.post(
 
       const token = generateToken(user._id);
 
-      res.status(201).json({
+      res.status(201).send({
         _id: user._id,
         name: user.name,
         email: user.email,
@@ -50,7 +50,7 @@ router.post(
       });
     } catch (error) {
       console.error(error);
-      res.status(500).json({ message: "Server error" });
+      res.status(500).send({ message: "Server error" });
     }
   }
 );
@@ -65,24 +65,24 @@ router.post(
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
+        return res.status(400).send({ errors: errors.array() });
       }
 
       const { email, password } = req.body;
 
       const user = await User.findOne({ email }).select("+password");
       if (!user) {
-        return res.status(401).json({ message: "Invalid credentials" });
+        return res.status(401).send({ message: "Invalid credentials" });
       }
 
       const isMatch = await user.comparePassword(password);
       if (!isMatch) {
-        return res.status(401).json({ message: "Invalid credentials" });
+        return res.status(401).send({ message: "Invalid credentials" });
       }
 
       const token = generateToken(user._id);
 
-      res.json({
+      res.status(200).send({
         _id: user._id,
         name: user.name,
         email: user.email,
@@ -90,7 +90,7 @@ router.post(
       });
     } catch (error) {
       console.error(error);
-      res.status(500).json({ message: "Server error" });
+      res.status(500).send({ message: "Server error" });
     }
   }
 );

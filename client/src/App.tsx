@@ -5,6 +5,9 @@ import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import Contact from "./pages/Contact";
 import { ToastProvider } from "@radix-ui/react-toast";
+import Sell from "./pages/Sell";
+import Listings from "./pages/Listings";
+import ListingDetails from "./pages/ListingDetails";
 
 function App() {
   return (
@@ -17,6 +20,9 @@ function App() {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/contact" element={<Contact />} />
+                <Route path="/sell" element={<Sell />} />
+                <Route path="/listings" element={<Listings />} />
+                <Route path="/listings/:id" element={<ListingDetails />} />
               </Routes>
             </div>
           </ToastProvider>

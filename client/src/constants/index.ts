@@ -9,4 +9,4 @@ export const NAV_ITEMS = [
   },
 ];
 
-export const LIGHT_BACKGROUND_PAGES = ["/contact"];
+export const LIGHT_BACKGROUND_PAGES = ["/"];

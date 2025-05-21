@@ -1,9 +1,10 @@
 import { User, Menu, X, Car } from "lucide-react";
 import { useState } from "react";
 import { NAV_ITEMS, LIGHT_BACKGROUND_PAGES } from "../constants";
-import { Link as RouterLink, useLocation } from "react-router-dom";
+import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
 import * as NavigationMenu from "@radix-ui/react-navigation-menu";
 import * as Dialog from "@radix-ui/react-dialog";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { Button, Text } from "@radix-ui/themes";
 import { useAuth } from "../context/AuthContext";
 import AuthModals from "./auth/AuthModals";
@@ -14,6 +15,7 @@ const Navbar = () => {
   const location = useLocation();
   const { user, logout } = useAuth();
   const isDarkText = LIGHT_BACKGROUND_PAGES.includes(location.pathname);
+  const navigate = useNavigate();
 
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -31,7 +33,7 @@ const Navbar = () => {
         as="span"
         weight="medium"
         className={`relative py-2 ${
-          isDarkText
+          !isDarkText
             ? isActive(to)
               ? "text-gray-900"
               : "text-gray-600"
@@ -39,7 +41,7 @@ const Navbar = () => {
             ? "text-white"
             : "text-white/70"
         } hover:${
-          isDarkText ? "text-gray-900" : "text-white"
+          !isDarkText ? "text-gray-900" : "text-white"
         } transition-colors duration-200`}
       >
         {children}
@@ -55,7 +57,7 @@ const Navbar = () => {
             <a href="/" className="flex items-center">
               <img
                 className="h-12 w-auto"
-                src={isDarkText ? "/logo_dark.png" : "/logo_light.png"}
+                src={!isDarkText ? "/logo_dark.png" : "/logo_light.png"}
                 alt="Logo"
               />
             </a>
@@ -73,41 +75,59 @@ const Navbar = () => {
 
           <div className="hidden lg:flex items-center gap-4">
             {user ? (
-              <div className="flex items-center gap-4">
-                <Text className={isDarkText ? "text-gray-900" : "text-white"}>
-                  {user.name}
-                </Text>
-                <Button
-                  variant="ghost"
-                  className={`${
-                    isDarkText
-                      ? "hover:bg-gray-100 text-gray-900"
-                      : "hover:bg-white/10 text-white"
-                  }`}
-                  onClick={logout}
-                >
-                  <Text className={isDarkText ? "text-gray-900" : "text-white"}>
-                    Log ud
-                  </Text>
-                </Button>
-              </div>
+              <DropdownMenu.Root>
+                <DropdownMenu.Trigger asChild>
+                  <Button
+                    variant="ghost"
+                    className={`${
+                      !isDarkText
+                        ? "hover:bg-gray-100 text-gray-900"
+                        : "hover:bg-white/10 text-white"
+                    }`}
+                  >
+                    <Text
+                      className={!isDarkText ? "text-gray-900" : "text-white"}
+                    >
+                      {user.name}
+                    </Text>
+                  </Button>
+                </DropdownMenu.Trigger>
+                <DropdownMenu.Portal>
+                  <DropdownMenu.Content
+                    className="min-w-[160px] bg-white rounded-md p-1 shadow-md"
+                    sideOffset={5}
+                  >
+                    <DropdownMenu.Item
+                      className="text-gray-700 hover:bg-gray-100 px-2 py-1.5 rounded cursor-pointer outline-none"
+                      onClick={logout}
+                    >
+                      Log ud
+                    </DropdownMenu.Item>
+                  </DropdownMenu.Content>
+                </DropdownMenu.Portal>
+              </DropdownMenu.Root>
             ) : (
               <Button
                 variant="ghost"
                 className={`${
-                  isDarkText
+                  !isDarkText
                     ? "hover:bg-gray-100 text-gray-900"
                     : "hover:bg-white/10 text-white"
                 }`}
                 onClick={() => setAuthModalOpen(true)}
               >
-                <Text className={isDarkText ? "text-gray-900" : "text-white"}>
+                <Text className={!isDarkText ? "text-gray-900" : "text-white"}>
                   Log ind
                 </Text>
                 <User size={16} strokeWidth={2} className="ml-2" />
               </Button>
             )}
-            <Button variant="solid" className="p-5" radius="full">
+            <Button
+              variant="solid"
+              className="p-5"
+              radius="full"
+              onClick={() => navigate("/sell")}
+            >
               <Text className="text-white font-medium">Sælg din bil</Text>
             </Button>
           </div>
@@ -121,7 +141,7 @@ const Navbar = () => {
                 <Button
                   variant="ghost"
                   className={`${
-                    isDarkText
+                    !isDarkText
                       ? "hover:bg-gray-100 text-gray-900"
                       : "hover:bg-white/10 text-white"
                   }`}
