@@ -713,7 +713,7 @@ const Sell = () => {
                               disabled={imagePreviews.length >= MAX_FILES}
                               className="flex items-center justify-center"
                             >
-                              <span className="flex items-center">
+                              <span className="flex items-center text-gray-600">
                                 <Upload className="w-4 h-4 mr-2" />
                                 Add More
                               </span>
@@ -772,7 +772,7 @@ const Sell = () => {
                               onClick={() => fileInputRef.current?.click()}
                               className="flex items-center justify-center"
                             >
-                              <span className="flex items-center">
+                              <span className="flex items-center text-gray-600">
                                 <Upload className="w-4 h-4 mr-2" />
                                 Select Images
                               </span>

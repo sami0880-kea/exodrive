@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Heading, Button } from "@radix-ui/themes";
 import * as Select from "@radix-ui/react-select";
 import * as Slider from "@radix-ui/react-slider";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { cn } from "../lib/utils";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -50,6 +50,7 @@ const Home = () => {
     };
 
     fetchListingCount();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedBrand, selectedModel, yearRange, priceRange]);
 
   const handleSearch = () => {
@@ -138,86 +139,115 @@ const Home = () => {
               </p>
             </div>
 
-            <div className="bg-white rounded-full border pl-2 border-white/20 overflow-hidden w-full max-w-3xl shadow-xl">
+            <div className="bg-white rounded-2xl md:rounded-full border md:pl-2 border-white/20 overflow-hidden w-full max-w-4xl shadow-xl">
               <div className="flex flex-col">
-                <div className="flex">
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-0 divide-x divide-gray-200 flex-1">
-                    <Select.Root
-                      value={selectedBrand}
-                      onValueChange={(value) => {
-                        setSelectedBrand(value);
-                        setSelectedModel("");
-                      }}
-                    >
-                      <Select.Trigger className="inline-flex flex-col items-start justify-center px-4 py-3 text-base w-full bg-white hover:bg-gray-50 focus:outline-none">
-                        <span className="font-semibold text-sm">Mærke</span>
-                        <div className="text-[inherit] text-gray-500 mt-1">
-                          {selectedBrand
-                            ? brands.find((b) => b.value === selectedBrand)
-                                ?.label
-                            : "Vælg mærke"}
-                        </div>
-                      </Select.Trigger>
-                      <Select.Portal>
-                        <Select.Content
-                          className="overflow-hidden bg-white/95 backdrop-blur-sm rounded-md shadow-lg border border-white/20 z-50"
-                          position="popper"
-                          sideOffset={5}
-                          style={{
-                            minWidth: "var(--radix-select-trigger-width)",
-                          }}
-                        >
-                          <Select.Viewport className="p-1">
-                            {brands.map((brand) => (
-                              <Select.Item
-                                key={brand.value}
-                                value={brand.value}
-                                className="relative flex items-center px-4 py-3 text-base rounded-md cursor-pointer select-none outline-none data-[highlighted]:bg-black/5"
-                              >
-                                <Select.ItemText>{brand.label}</Select.ItemText>
-                              </Select.Item>
-                            ))}
-                          </Select.Viewport>
-                        </Select.Content>
-                      </Select.Portal>
-                    </Select.Root>
-
-                    <Select.Root
-                      value={selectedModel}
-                      onValueChange={setSelectedModel}
-                      disabled={!selectedBrand}
-                    >
-                      <Select.Trigger className="inline-flex flex-col items-start justify-center px-4 py-3 text-base w-full bg-white hover:bg-gray-50 focus:outline-none">
-                        <span className="font-semibold text-sm">Model</span>
+                <div className="flex flex-col md:flex-row">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-0 divide-y md:divide-y-0 md:divide-x divide-gray-200 flex-1">
+                    <div className="relative">
+                      <Select.Root
+                        value={selectedBrand}
+                        onValueChange={(value) => {
+                          setSelectedBrand(value);
+                          setSelectedModel("");
+                        }}
+                      >
+                        <Select.Trigger className="inline-flex flex-col items-start justify-center px-4 py-4 md:py-3 text-base w-full bg-white hover:bg-gray-50 focus:outline-none">
+                          <span className="font-semibold text-sm">Mærke</span>
+                          <div className="text-[inherit] text-gray-500 mt-1 pr-6">
+                            {selectedBrand
+                              ? brands.find((b) => b.value === selectedBrand)
+                                  ?.label
+                              : "Vælg mærke"}
+                          </div>
+                        </Select.Trigger>
+                        <Select.Portal>
+                          <Select.Content
+                            className="overflow-hidden bg-white/95 backdrop-blur-sm rounded-md shadow-lg border border-white/20 z-50"
+                            position="popper"
+                            sideOffset={5}
+                            style={{
+                              minWidth: "var(--radix-select-trigger-width)",
+                            }}
+                          >
+                            <Select.Viewport className="p-1">
+                              {brands.map((brand) => (
+                                <Select.Item
+                                  key={brand.value}
+                                  value={brand.value}
+                                  className="relative flex items-center px-4 py-3 text-base rounded-md cursor-pointer select-none outline-none data-[highlighted]:bg-black/5"
+                                >
+                                  <Select.ItemText>
+                                    {brand.label}
+                                  </Select.ItemText>
+                                </Select.Item>
+                              ))}
+                            </Select.Viewport>
+                          </Select.Content>
+                        </Select.Portal>
+                      </Select.Root>
+                      {selectedBrand && (
                         <div
-                          className={cn(
-                            "text-[inherit] mt-1",
-                            !selectedModel || !selectedBrand
-                              ? "text-gray-500"
-                              : "text-gray-500",
-                            !selectedBrand && "opacity-50"
-                          )}
-                        >
-                          {selectedModel
-                            ? models[selectedBrand as keyof typeof models].find(
-                                (m) => m.value === selectedModel
-                              )?.label
-                            : "Vælg model"}
-                        </div>
-                      </Select.Trigger>
-                      <Select.Portal>
-                        <Select.Content
-                          className="overflow-hidden bg-white/95 backdrop-blur-sm rounded-md shadow-lg border border-white/20 z-50"
-                          position="popper"
-                          sideOffset={5}
-                          style={{
-                            minWidth: "var(--radix-select-trigger-width)",
+                          role="button"
+                          tabIndex={0}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedBrand("");
+                            setSelectedModel("");
                           }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setSelectedBrand("");
+                              setSelectedModel("");
+                            }
+                          }}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full cursor-pointer z-10"
+                          aria-label="Clear brand selection"
                         >
-                          <Select.Viewport className="p-1">
-                            {selectedBrand &&
-                              models[selectedBrand as keyof typeof models].map(
-                                (model) => (
+                          <X size={14} className="text-gray-400" />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="relative">
+                      <Select.Root
+                        value={selectedModel}
+                        onValueChange={setSelectedModel}
+                        disabled={!selectedBrand}
+                      >
+                        <Select.Trigger className="inline-flex flex-col items-start justify-center px-4 py-4 md:py-3 text-base w-full bg-white hover:bg-gray-50 focus:outline-none">
+                          <span className="font-semibold text-sm">Model</span>
+                          <div
+                            className={cn(
+                              "text-[inherit] mt-1 pr-6",
+                              !selectedModel || !selectedBrand
+                                ? "text-gray-500"
+                                : "text-gray-500",
+                              !selectedBrand && "opacity-50"
+                            )}
+                          >
+                            {selectedModel
+                              ? models[
+                                  selectedBrand as keyof typeof models
+                                ].find((m) => m.value === selectedModel)?.label
+                              : "Vælg model"}
+                          </div>
+                        </Select.Trigger>
+                        <Select.Portal>
+                          <Select.Content
+                            className="overflow-hidden bg-white/95 backdrop-blur-sm rounded-md shadow-lg border border-white/20 z-50"
+                            position="popper"
+                            sideOffset={5}
+                            style={{
+                              minWidth: "var(--radix-select-trigger-width)",
+                            }}
+                          >
+                            <Select.Viewport className="p-1">
+                              {selectedBrand &&
+                                models[
+                                  selectedBrand as keyof typeof models
+                                ].map((model) => (
                                   <Select.Item
                                     key={model.value}
                                     value={model.value}
@@ -227,15 +257,36 @@ const Home = () => {
                                       {model.label}
                                     </Select.ItemText>
                                   </Select.Item>
-                                )
-                              )}
-                          </Select.Viewport>
-                        </Select.Content>
-                      </Select.Portal>
-                    </Select.Root>
+                                ))}
+                            </Select.Viewport>
+                          </Select.Content>
+                        </Select.Portal>
+                      </Select.Root>
+                      {selectedModel && (
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedModel("");
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setSelectedModel("");
+                            }
+                          }}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full cursor-pointer z-10"
+                          aria-label="Clear model selection"
+                        >
+                          <X size={14} className="text-gray-400" />
+                        </div>
+                      )}
+                    </div>
 
                     <Select.Root>
-                      <Select.Trigger className="inline-flex flex-col items-start justify-center px-4 py-3 text-base w-full bg-white hover:bg-gray-50 focus:outline-none">
+                      <Select.Trigger className="inline-flex flex-col items-start justify-center px-4 py-4 md:py-3 text-base w-full bg-white hover:bg-gray-50 focus:outline-none">
                         <span className="font-semibold text-sm">Årgang</span>
                         <div className="text-[inherit] text-gray-500 mt-1">
                           {yearRange[0] === 2000 &&
@@ -257,12 +308,15 @@ const Home = () => {
                             <div className="flex flex-col gap-3">
                               <div className="flex items-center justify-between">
                                 <span className="font-semibold">Årgang</span>
-                                <button
-                                  onClick={resetYearRange}
-                                  className="text-sm text-gray-500 hover:text-gray-700"
-                                >
-                                  Nulstil
-                                </button>
+                                {(yearRange[0] !== 2000 ||
+                                  yearRange[1] !== currentYear + 1) && (
+                                  <button
+                                    onClick={resetYearRange}
+                                    className="text-sm text-gray-500 hover:text-gray-700"
+                                  >
+                                    Nulstil
+                                  </button>
+                                )}
                               </div>
                               <div className="flex gap-6">
                                 <div className="flex flex-col gap-1.5 flex-1">
@@ -329,7 +383,7 @@ const Home = () => {
                     </Select.Root>
 
                     <Select.Root>
-                      <Select.Trigger className="inline-flex flex-col items-start justify-center px-4 py-3 text-base w-full bg-white hover:bg-gray-50 focus:outline-none">
+                      <Select.Trigger className="inline-flex flex-col items-start justify-center px-4 py-4 md:py-3 text-base w-full bg-white hover:bg-gray-50 focus:outline-none">
                         <span className="font-semibold text-sm">Pris</span>
                         <div className="text-[inherit] text-gray-500 mt-1">
                           {priceRange[0] === 0 && priceRange[1] === 10000000
@@ -352,12 +406,15 @@ const Home = () => {
                             <div className="flex flex-col gap-3">
                               <div className="flex items-center justify-between">
                                 <span className="font-semibold">Pris</span>
-                                <button
-                                  onClick={resetPriceRange}
-                                  className="text-sm text-gray-500 hover:text-gray-700"
-                                >
-                                  Nulstil
-                                </button>
+                                {(priceRange[0] !== 0 ||
+                                  priceRange[1] !== 10000000) && (
+                                  <button
+                                    onClick={resetPriceRange}
+                                    className="text-sm text-gray-500 hover:text-gray-700"
+                                  >
+                                    Nulstil
+                                  </button>
+                                )}
                               </div>
                               <div className="flex gap-6">
                                 <div className="flex flex-col gap-1.5 flex-1">
@@ -433,15 +490,14 @@ const Home = () => {
                       </Select.Portal>
                     </Select.Root>
                   </div>
-
-                  <div className="flex flex-col items-center justify-center p-2 border-l border-gray-200">
+                  <div className="flex flex-col items-center justify-center p-4 md:p-2 border-t md:border-t-0 md:border-l border-gray-200">
                     <Button
-                      className="px-8 p-2 rounded-full flex items-center justify-center gap-2 h-full"
+                      className="w-full md:w-auto px-8 py-3 md:py-2 rounded-xl md:rounded-full flex items-center justify-center gap-2 h-full"
                       size="3"
                       onClick={handleSearch}
+                      disabled={listingCount === 0}
                     >
-                      <Search size={16} />
-                      <span>Søg {listingCount} biler</span>
+                      <Search size={16} /> <span>Søg {listingCount} biler</span>
                     </Button>
                   </div>
                 </div>
