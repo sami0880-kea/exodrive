@@ -17,9 +17,11 @@ import {
 import Button from "@/components/Button";
 import CustomSelect from "@/components/Select";
 import ContentPage from "../components/ContentPage";
+import FormInput from "../components/FormInput";
 import { useState, useRef } from "react";
 import axios from "axios";
 import config from "../config";
+import { useAuth } from "../context/AuthContext";
 
 interface LeaseDetails {
   downPayment: number;
@@ -44,6 +46,10 @@ interface FormValues {
   description: string;
   transmission: string;
   leaseDetails: LeaseDetails;
+  seller: {
+    phone: string;
+    location: string;
+  };
 }
 
 interface ImagePreview {
@@ -62,7 +68,9 @@ const validationSchema = Yup.object().shape({
   brand: Yup.string().required("Vælg bil mærke"),
   model: Yup.string().required("Vælg bil model"),
   year: Yup.string().required("Vælg årgang"),
-  price: Yup.number().nullable(),
+  price: Yup.number()
+    .required("Indtast pris")
+    .min(1, "Prisen skal være større end 0"),
   withVAT: Yup.boolean(),
   withRegistrationFee: Yup.boolean(),
   fuelType: Yup.string().required("Vælg brændstof"),
@@ -70,6 +78,10 @@ const validationSchema = Yup.object().shape({
   isAutomatic: Yup.boolean(),
   transmission: Yup.string().required("Vælg transmission"),
   description: Yup.string().required("Indtast beskrivelse"),
+  seller: Yup.object().shape({
+    phone: Yup.string().required("Indtast telefonnummer"),
+    location: Yup.string().required("Indtast lokation"),
+  }),
   leaseDetails: Yup.object().when("listingType", {
     is: "lease",
     then: () =>
@@ -104,6 +116,10 @@ const initialValues: FormValues = {
     monthlyPayment: 0,
     duration: 12,
     residualValue: 0,
+  },
+  seller: {
+    phone: "",
+    location: "",
   },
 };
 
@@ -239,10 +255,26 @@ const handleNumberInput = (
 };
 
 const Sell = () => {
+  const { user } = useAuth();
   const [imagePreviews, setImagePreviews] = useState<ImagePreview[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  if (!user) {
+    return (
+      <ContentPage>
+        <div className="max-w-4xl mx-auto px-4 text-center py-12">
+          <Heading size="8" className="mb-4">
+            Log ind for at sælge din bil
+          </Heading>
+          <Text size="4" className="text-gray-600">
+            Du skal være logget ind for at oprette en annonce.
+          </Text>
+        </div>
+      </ContentPage>
+    );
+  }
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -318,6 +350,10 @@ const Sell = () => {
                 description: values.description,
                 withVAT: values.withVAT,
                 withRegistrationFee: values.withRegistrationFee,
+                seller: {
+                  phone: values.seller.phone,
+                  location: values.seller.location,
+                },
                 ...(values.listingType === "lease" && {
                   leaseDetails: {
                     downPayment: parseInt(
@@ -352,6 +388,7 @@ const Sell = () => {
                 {
                   headers: {
                     "Content-Type": "multipart/form-data",
+                    Authorization: `Bearer ${user.token}`,
                   },
                 }
               );
@@ -376,33 +413,19 @@ const Sell = () => {
             }
           }}
         >
-          {({
-            values,
-            setFieldValue,
-            handleSubmit,
-          }: {
-            values: FormValues;
-            setFieldValue: (
-              field: string,
-              value: number | string | boolean | File[]
-            ) => void;
-            handleSubmit: (e?: React.FormEvent<HTMLFormElement>) => void;
-          }) => (
+          {({ values, errors, touched, setFieldValue, handleSubmit }) => (
             <form className="space-y-6" onSubmit={handleSubmit}>
               <Card className="p-6">
                 <div className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Titel
-                    </label>
-                    <input
-                      type="text"
-                      value={values.title}
-                      onChange={(e) => setFieldValue("title", e.target.value)}
-                      className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500"
-                      placeholder="Indtast titel på annoncen"
-                    />
-                  </div>
+                  <FormInput
+                    label="Titel"
+                    value={values.title}
+                    onChange={(e) => setFieldValue("title", e.target.value)}
+                    placeholder="Indtast titel på annoncen"
+                    error={errors.title}
+                    touched={touched.title}
+                    required
+                  />
 
                   <div>
                     <Heading size="4" className="mb-4">
@@ -432,24 +455,17 @@ const Sell = () => {
 
                   {values.listingType === "direct-sale" && (
                     <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Pris (kr)
-                        </label>
-                        <div className="relative">
-                          <input
-                            type="text"
-                            value={formatNumber(values.price || 0)}
-                            onChange={(e) =>
-                              handleNumberInput(e, setFieldValue, "price")
-                            }
-                            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500"
-                          />
-                          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
-                            kr
-                          </div>
-                        </div>
-                      </div>
+                      <FormInput
+                        label="Pris"
+                        value={formatNumber(values.price || 0)}
+                        onChange={(e) =>
+                          handleNumberInput(e, setFieldValue, "price")
+                        }
+                        suffix="kr"
+                        error={errors.price}
+                        touched={touched.price}
+                        required
+                      />
                       <div className="flex gap-4">
                         <label className="flex items-center gap-2 cursor-pointer">
                           <Checkbox.Root
@@ -711,9 +727,9 @@ const Sell = () => {
                               size="sm"
                               onClick={() => fileInputRef.current?.click()}
                               disabled={imagePreviews.length >= MAX_FILES}
-                              className="flex items-center justify-center"
+                              className="flex items-center justify-center !border-gray-300 !text-gray-900 hover:!bg-gray-100 hover:!border-gray-400 hover:!text-gray-900"
                             >
-                              <span className="flex items-center text-gray-600">
+                              <span className="flex items-center">
                                 <Upload className="w-4 h-4 mr-2" />
                                 Add More
                               </span>
@@ -770,9 +786,9 @@ const Sell = () => {
                               type="button"
                               variant="outline"
                               onClick={() => fileInputRef.current?.click()}
-                              className="flex items-center justify-center"
+                              className="flex items-center justify-center !border-gray-300 !text-gray-900 hover:!bg-gray-100 hover:!border-gray-400 hover:!text-gray-900"
                             >
-                              <span className="flex items-center text-gray-600">
+                              <span className="flex items-center">
                                 <Upload className="w-4 h-4 mr-2" />
                                 Select Images
                               </span>
@@ -792,7 +808,7 @@ const Sell = () => {
 
                   <div className="space-y-4">
                     <Heading size="4">Beskrivelse</Heading>
-                    <div className="space-y-2">
+                    <div>
                       <div className="flex gap-2 p-2 border rounded-t-md bg-gray-50">
                         <button
                           type="button"
@@ -851,13 +867,54 @@ const Sell = () => {
                           <List className="w-4 h-4" />
                         </button>
                       </div>
-                      <textarea
-                        value={values.description}
+                      <div className="relative">
+                        <textarea
+                          value={values.description}
+                          onChange={(e) =>
+                            setFieldValue("description", e.target.value)
+                          }
+                          className={`w-full h-48 px-4 py-2 border rounded-b-md bg-white focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500 ${
+                            errors.description && touched.description
+                              ? "border-red-500"
+                              : "border-gray-300"
+                          }`}
+                          style={{ direction: "ltr", textAlign: "left" }}
+                          placeholder="Indtast beskrivelse af bilen..."
+                        />
+                        {errors.description && touched.description && (
+                          <div className="text-red-500 text-sm mt-1">
+                            {errors.description}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <Heading size="4">Kontakt Information</Heading>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormInput
+                        label="Telefonnummer"
+                        type="tel"
+                        value={values.seller.phone}
                         onChange={(e) =>
-                          setFieldValue("description", e.target.value)
+                          setFieldValue("seller.phone", e.target.value)
                         }
-                        className="w-full h-48 px-4 py-2 border rounded-b-md bg-white focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500"
-                        style={{ direction: "ltr", textAlign: "left" }}
+                        placeholder="Indtast telefonnummer"
+                        error={errors.seller?.phone}
+                        touched={touched.seller?.phone}
+                        required
+                      />
+                      <FormInput
+                        label="Lokation"
+                        value={values.seller.location}
+                        onChange={(e) =>
+                          setFieldValue("seller.location", e.target.value)
+                        }
+                        placeholder="Indtast by eller område"
+                        error={errors.seller?.location}
+                        touched={touched.seller?.location}
+                        required
                       />
                     </div>
                   </div>

@@ -1,4 +1,12 @@
-import { User, Menu, X, Car } from "lucide-react";
+import {
+  User,
+  Menu,
+  X,
+  Car,
+  ChevronDown,
+  MessageCircle,
+  LogOut,
+} from "lucide-react";
 import { useState } from "react";
 import { NAV_ITEMS, LIGHT_BACKGROUND_PAGES } from "../constants";
 import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
@@ -8,6 +16,7 @@ import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { Button, Text } from "@radix-ui/themes";
 import { useAuth } from "../context/AuthContext";
 import AuthModals from "./auth/AuthModals";
+import MessageIcon from "./MessageIcon";
 
 const Navbar = () => {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
@@ -52,8 +61,8 @@ const Navbar = () => {
   return (
     <nav className={`absolute top-0 left-0 right-0 z-50 py-4`}>
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center flex-shrink-0">
+        <div className="flex items-center justify-between lg:justify-start">
+          <div className="flex items-center flex-shrink-0 lg:w-1/3">
             <a href="/" className="flex items-center">
               <img
                 className="h-12 w-auto"
@@ -63,7 +72,7 @@ const Navbar = () => {
             </a>
           </div>
 
-          <NavigationMenu.Root className="hidden lg:flex ml-14">
+          <NavigationMenu.Root className="hidden lg:flex justify-center w-1/3">
             <NavigationMenu.List className="flex gap-6 list-none">
               {NAV_ITEMS.map((item, index) => (
                 <NavigationMenu.Item key={index}>
@@ -73,35 +82,56 @@ const Navbar = () => {
             </NavigationMenu.List>
           </NavigationMenu.Root>
 
-          <div className="hidden lg:flex items-center gap-4">
+          <div className="hidden lg:flex items-center gap-4 justify-end w-1/3">
+            <MessageIcon isDarkText={isDarkText} />
             {user ? (
               <DropdownMenu.Root>
                 <DropdownMenu.Trigger asChild>
                   <Button
                     variant="ghost"
-                    className={`${
+                    className={`flex items-center gap-2 !h-10 !m-0 !p-0 !px-2 focus:outline-none focus:ring-0 focus:ring-offset-0 active:bg-transparent data-[state=open]:bg-transparent ${
                       !isDarkText
                         ? "hover:bg-gray-100 text-gray-900"
                         : "hover:bg-white/10 text-white"
                     }`}
                   >
+                    <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                      <Text className="font-medium text-gray-700 text-xs">
+                        {user.name.charAt(0).toUpperCase()}
+                      </Text>
+                    </div>
                     <Text
+                      size="3"
+                      weight="medium"
                       className={!isDarkText ? "text-gray-900" : "text-white"}
                     >
                       {user.name}
                     </Text>
+                    <ChevronDown
+                      size={14}
+                      className={!isDarkText ? "text-gray-900" : "text-white"}
+                    />
                   </Button>
                 </DropdownMenu.Trigger>
                 <DropdownMenu.Portal>
                   <DropdownMenu.Content
-                    className="min-w-[160px] bg-white rounded-md p-1 shadow-md"
-                    sideOffset={5}
+                    className="min-w-[180px] bg-white rounded-lg p-2 shadow-lg border border-gray-200"
+                    sideOffset={8}
                   >
                     <DropdownMenu.Item
-                      className="text-gray-700 hover:bg-gray-100 px-2 py-1.5 rounded cursor-pointer outline-none"
+                      className="flex items-center gap-3 text-gray-700 hover:bg-gray-50 px-3 py-2.5 rounded-md cursor-pointer outline-none transition-colors"
+                      onClick={() => navigate("/messages")}
+                    >
+                      <MessageCircle size={16} className="text-gray-500" />
+                      <span className="font-medium">Mine Beskeder</span>
+                    </DropdownMenu.Item>
+                    <DropdownMenu.Separator className="h-px bg-gray-200 my-1" />
+                    <DropdownMenu.Item
+                      className="flex items-center gap-3 text-gray-700 hover:bg-gray-50 px-3 py-2.5 rounded-md cursor-pointer outline-none transition-colors"
                       onClick={logout}
                     >
-                      Log ud
+                      <LogOut size={16} className="text-gray-500" />
+                      <span className="font-medium">Log ud</span>
                     </DropdownMenu.Item>
                   </DropdownMenu.Content>
                 </DropdownMenu.Portal>
@@ -126,7 +156,13 @@ const Navbar = () => {
               variant="solid"
               className="p-5"
               radius="full"
-              onClick={() => navigate("/sell")}
+              onClick={() => {
+                if (user) {
+                  navigate("/sell");
+                } else {
+                  setAuthModalOpen(true);
+                }
+              }}
             >
               <Text className="text-white font-medium">Sælg din bil</Text>
             </Button>
@@ -173,12 +209,30 @@ const Navbar = () => {
                     <div className="flex flex-col gap-4 mt-auto pt-8">
                       {user ? (
                         <>
-                          <Text>{user.name}</Text>
+                          <div className="flex items-center justify-between">
+                            <Text>{user.name}</Text>
+                            <MessageIcon isDarkText={false} />
+                          </div>
                           <Button
                             variant="ghost"
-                            className="w-full hover:bg-gray-50"
+                            className="w-full hover:bg-gray-50 flex items-center justify-start gap-3"
+                            onClick={() => {
+                              navigate("/messages");
+                              setMobileDrawerOpen(false);
+                            }}
+                          >
+                            <MessageCircle
+                              size={16}
+                              className="text-gray-500"
+                            />
+                            <Text>Mine Beskeder</Text>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            className="w-full hover:bg-gray-50 flex items-center justify-start gap-3"
                             onClick={logout}
                           >
+                            <LogOut size={16} className="text-gray-500" />
                             <Text>Log ud</Text>
                           </Button>
                         </>
@@ -194,7 +248,16 @@ const Navbar = () => {
                       )}
                       <Button
                         variant="solid"
-                        className="w-full transition-all duration-200 border-0"
+                        className="w-full transition-all duration-200 border-0 bg-red-500 hover:bg-red-600"
+                        onClick={() => {
+                          if (user) {
+                            navigate("/sell");
+                            setMobileDrawerOpen(false);
+                          } else {
+                            setMobileDrawerOpen(false);
+                            setAuthModalOpen(true);
+                          }
+                        }}
                       >
                         <Car size={16} strokeWidth={2} className="mr-2" />
                         <Text className="text-white font-medium">

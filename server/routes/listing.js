@@ -2,6 +2,8 @@ import { Router } from "express";
 import Listing from "../models/Listing.js";
 import { uploadToCloudinary } from "../config/cloudinary.js";
 import multer from "multer";
+import { protect } from "../middleware/auth.js";
+import { generalLimiter, strictLimiter } from "../middleware/rateLimiter.js";
 
 const router = Router();
 
@@ -13,40 +15,54 @@ const upload = multer({
   },
 });
 
-router.post("/", upload.array("images", 6), async (req, res) => {
-  try {
-    const listingData = JSON.parse(req.body.listingData);
-    const files = req.files;
+router.post(
+  "/",
+  strictLimiter,
+  protect,
+  upload.array("images", 6),
+  async (req, res) => {
+    try {
+      const listingData = JSON.parse(req.body.listingData);
+      const files = req.files;
 
-    if (!files || files.length === 0) {
-      return res.status(400).send({ message: "No images provided" });
+      if (!files || files.length === 0) {
+        return res.status(400).send({ message: "No images provided" });
+      }
+
+      const imageUrls = await Promise.all(
+        files.map(async (file) => {
+          try {
+            return await uploadToCloudinary(file);
+          } catch (error) {
+            console.error("Error uploading file to Cloudinary:", error);
+            throw error;
+          }
+        })
+      );
+
+      const listing = new Listing({
+        ...listingData,
+        images: imageUrls,
+        user: req.user._id,
+        seller: {
+          name: req.user.name,
+          email: req.user.email,
+          phone: listingData.seller?.phone || "",
+          location: listingData.seller?.location || "",
+        },
+      });
+
+      await listing.save();
+      await listing.populate("user", "name email");
+      res.status(201).send(listing);
+    } catch (error) {
+      console.error("Error creating listing:", error);
+      res.status(400).send({ message: error.message });
     }
-
-    const imageUrls = await Promise.all(
-      files.map(async (file) => {
-        try {
-          return await uploadToCloudinary(file);
-        } catch (error) {
-          console.error("Error uploading file to Cloudinary:", error);
-          throw error;
-        }
-      })
-    );
-
-    const listing = new Listing({
-      ...listingData,
-      images: imageUrls,
-    });
-
-    await listing.save();
-    res.status(201).send(listing);
-  } catch (error) {
-    console.error("Error creating listing:", error);
-    res.status(400).send({ message: error.message });
   }
-});
+);
 
-router.get("/count", async (req, res) => {
+router.get("/count", generalLimiter, async (req, res) => {
   try {
     const { brand, model, yearFrom, yearTo, priceFrom, priceTo } = req.query;
 
@@ -74,7 +90,7 @@ router.get("/count", async (req, res) => {
   }
 });
 
-router.get("/", async (req, res) => {
+router.get("/", generalLimiter, async (req, res) => {
   try {
     const { brand, model, yearFrom, yearTo, priceFrom, priceTo } = req.query;
 
@@ -95,16 +111,21 @@ router.get("/", async (req, res) => {
       if (priceTo) filter.price.$lte = parseInt(priceTo);
     }
 
-    const listings = await Listing.find(filter).sort({ createdAt: -1 });
+    const listings = await Listing.find(filter)
+      .populate("user", "name email")
+      .sort({ createdAt: -1 });
     res.send(listings);
   } catch (error) {
     res.status(500).send({ message: error.message });
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/:id", generalLimiter, async (req, res) => {
   try {
-    const listing = await Listing.findById(req.params.id);
+    const listing = await Listing.findById(req.params.id).populate(
+      "user",
+      "name email"
+    );
     if (!listing) {
       return res.status(404).send({ message: "Listing not found" });
     }
@@ -114,7 +135,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.patch("/:id", async (req, res) => {
+router.patch("/:id", strictLimiter, protect, async (req, res) => {
   try {
     const listing = await Listing.findByIdAndUpdate(
       req.params.id,

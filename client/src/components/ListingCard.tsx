@@ -79,7 +79,8 @@ const ListingCard = ({ listing }: ListingCardProps) => {
                       Udbetaling
                     </Text>
                     <div className="font-medium">
-                      {formatNumber(listing.leaseDetails.downPayment)} kr
+                      {formatNumber(listing.leaseDetails.downPayment)}{" "}
+                      <span className="text-gray-500">kr</span>
                     </div>
                   </div>
                   <div className="space-y-1.5">
@@ -87,7 +88,8 @@ const ListingCard = ({ listing }: ListingCardProps) => {
                       Pr. måned
                     </Text>
                     <div className="font-medium">
-                      {formatNumber(listing.leaseDetails.monthlyPayment)} kr
+                      {formatNumber(listing.leaseDetails.monthlyPayment)}{" "}
+                      <span className="text-gray-500">kr</span>
                     </div>
                   </div>
                 </div>
@@ -96,15 +98,21 @@ const ListingCard = ({ listing }: ListingCardProps) => {
                     Total for {listing.leaseDetails.duration} mdr
                   </Text>
                   <div className="font-medium text-red-600">
-                    {formatNumber(calculateTotalLeasePrice())} kr
+                    {formatNumber(calculateTotalLeasePrice())}{" "}
+                    <span className="text-gray-500">kr</span>
                   </div>
                 </div>
               </div>
             ) : (
-              <Text size="5" className="font-semibold">
-                {formatNumber(listing.price || 0)} kr
-                {listing.withVAT && " inkl. moms"}
-              </Text>
+              <div className="text-xl font-semibold">
+                {formatNumber(listing.price || 0)}{" "}
+                <span className="text-gray-500 font-normal text-sm">kr</span>
+                {listing.withVAT && (
+                  <span className="text-sm text-gray-500 font-normal ml-1">
+                    inkl. moms
+                  </span>
+                )}
+              </div>
             )}
           </div>
         </div>

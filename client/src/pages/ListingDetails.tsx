@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Card, Heading, Text } from "@radix-ui/themes";
-import { Fuel, Gauge, Tag, MapPin, Phone, Mail, Calendar } from "lucide-react";
+import { Fuel, Gauge, Tag, MapPin, Phone, Calendar } from "lucide-react";
 import axios from "axios";
 import config from "../config";
 import { Listing } from "../types/listing";
 import ContentPage from "../components/ContentPage";
 import ImageWithFallback from "../components/ImageWithFallback";
+import ContactInfo from "../components/ContactInfo";
+import MessageButton from "../components/MessageButton";
 import { formatNumber } from "../lib/utils";
 
 const Badge = ({
@@ -126,7 +128,8 @@ const ListingDetails = () => {
                             Udbetaling
                           </Text>
                           <div className="font-medium text-lg">
-                            {formatNumber(listing.leaseDetails.downPayment)} kr
+                            {formatNumber(listing.leaseDetails.downPayment)}{" "}
+                            <span className="text-gray-500">kr</span>
                           </div>
                         </div>
                         <div className="space-y-1.5">
@@ -135,7 +138,7 @@ const ListingDetails = () => {
                           </Text>
                           <div className="font-medium text-lg">
                             {formatNumber(listing.leaseDetails.monthlyPayment)}{" "}
-                            kr
+                            <span className="text-gray-500">kr</span>
                           </div>
                         </div>
                         <div className="space-y-1.5">
@@ -152,7 +155,7 @@ const ListingDetails = () => {
                           </Text>
                           <div className="font-medium text-lg">
                             {formatNumber(listing.leaseDetails.residualValue)}{" "}
-                            kr
+                            <span className="text-gray-500">kr</span>
                           </div>
                         </div>
                       </div>
@@ -161,7 +164,8 @@ const ListingDetails = () => {
                           Total for {listing.leaseDetails.duration} mdr
                         </Text>
                         <div className="font-medium text-xl text-red-600">
-                          {formatNumber(calculateTotalLeasePrice())} kr
+                          {formatNumber(calculateTotalLeasePrice())}{" "}
+                          <span className="text-gray-500">kr</span>
                         </div>
                       </div>
                       {listing.price && (
@@ -170,7 +174,8 @@ const ListingDetails = () => {
                             Pris ved køb
                           </Text>
                           <div className="font-medium text-lg">
-                            {formatNumber(listing.price)} kr
+                            {formatNumber(listing.price)}{" "}
+                            <span className="text-gray-500">kr</span>
                           </div>
                         </div>
                       )}
@@ -182,8 +187,15 @@ const ListingDetails = () => {
                       Pris
                     </Heading>
                     <div className="font-semibold text-2xl">
-                      {formatNumber(listing.price || 0)} kr
-                      {listing.withVAT && " inkl. moms"}
+                      {formatNumber(listing.price || 0)}{" "}
+                      <span className="text-gray-500 font-medium text-[18px]">
+                        kr
+                      </span>
+                      {listing.withVAT && (
+                        <span className="text-sm text-gray-500 font-normal ml-1">
+                          inkl. moms
+                        </span>
+                      )}
                     </div>
                   </div>
                 )}
@@ -204,34 +216,39 @@ const ListingDetails = () => {
                       <Text className="font-medium">{listing.seller.name}</Text>
                     </div>
                     {listing.seller.location && (
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <MapPin size={18} />
-                        <Text>{listing.seller.location}</Text>
-                      </div>
+                      <ContactInfo
+                        icon={MapPin}
+                        value={listing.seller.location}
+                        helperText="Bilens lokation"
+                      />
                     )}
                     {listing.seller.phone && (
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <Phone size={18} />
-                        <Text>{listing.seller.phone}</Text>
-                      </div>
+                      <ContactInfo
+                        icon={Phone}
+                        value={listing.seller.phone}
+                        helperText="Ring for at aftale visning"
+                      />
                     )}
-                    {listing.seller.email && (
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <Mail size={18} />
-                        <Text>{listing.seller.email}</Text>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-2 text-gray-600 pt-2 border-t">
-                      <Calendar size={18} />
-                      <Text>
-                        Oprettet{" "}
-                        {new Date(listing.createdAt).toLocaleDateString(
-                          "da-DK"
-                        )}
-                      </Text>
+                    <div className="pt-2 border-t">
+                      <ContactInfo
+                        icon={Calendar}
+                        value={`Oprettet ${new Date(
+                          listing.createdAt
+                        ).toLocaleDateString("da-DK")}`}
+                        helperText="Annoncens oprettelsesdato"
+                      />
                     </div>
                   </div>
                 </Card>
+              )}
+
+              {listing.user && (
+                <MessageButton
+                  sellerId={listing.user._id}
+                  sellerName={listing.user.name}
+                  listingId={listing._id}
+                  listingTitle={listing.title}
+                />
               )}
             </div>
           </div>

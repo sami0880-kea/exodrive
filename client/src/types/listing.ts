@@ -21,6 +21,11 @@ export interface Listing {
   withVAT: boolean;
   withRegistrationFee: boolean;
   leaseDetails?: LeaseDetails;
+  user?: {
+    _id: string;
+    name: string;
+    email: string;
+  };
   seller?: {
     name: string;
     phone: string;

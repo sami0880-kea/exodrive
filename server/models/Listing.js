@@ -21,6 +21,14 @@ const listingSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  withVAT: {
+    type: Boolean,
+    default: true,
+  },
+  withRegistrationFee: {
+    type: Boolean,
+    default: true,
+  },
   fuelType: {
     type: String,
     enum: ["diesel", "benzin", "el", "plug-in-diesel", "plug-in-benzin"],
@@ -59,6 +67,30 @@ const listingSchema = new mongoose.Schema({
       enum: [6, 12, 24, 36],
     },
     remainingMonths: Number,
+    residualValue: Number,
+  },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
+  seller: {
+    name: {
+      type: String,
+      required: true,
+    },
+    email: {
+      type: String,
+      required: true,
+    },
+    phone: {
+      type: String,
+      required: true,
+    },
+    location: {
+      type: String,
+      required: true,
+    },
   },
   createdAt: {
     type: Date,

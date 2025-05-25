@@ -2,6 +2,8 @@ import { Router } from "express";
 import { body, validationResult } from "express-validator";
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
+import { authLimiter, generalLimiter } from "../middleware/rateLimiter.js";
+import emailService from "../utils/emailService.js";
 
 const router = Router();
 
@@ -13,6 +15,7 @@ const generateToken = (id) => {
 
 router.post(
   "/register",
+  authLimiter,
   [
     body("name").notEmpty().withMessage("Name is required"),
     body("email").isEmail().withMessage("Please include a valid email"),
@@ -42,6 +45,15 @@ router.post(
 
       const token = generateToken(user._id);
 
+      try {
+        await emailService.sendWelcomeEmail({
+          email: user.email,
+          name: user.name,
+        });
+      } catch (emailError) {
+        console.error("Failed to send welcome email:", emailError);
+      }
+
       res.status(201).send({
         _id: user._id,
         name: user.name,
@@ -57,6 +69,7 @@ router.post(
 
 router.post(
   "/login",
+  authLimiter,
   [
     body("email").isEmail().withMessage("Please include a valid email"),
     body("password").exists().withMessage("Password is required"),
