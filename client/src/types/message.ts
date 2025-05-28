@@ -12,7 +12,6 @@ export interface Message {
   };
   listing: string;
   content: string;
-  isRead: boolean;
   conversationId: string;
   createdAt: string;
   updatedAt: string;

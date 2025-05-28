@@ -16,7 +16,6 @@ import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { Button, Text } from "@radix-ui/themes";
 import { useAuth } from "../context/AuthContext";
 import AuthModals from "./auth/AuthModals";
-import MessageIcon from "./MessageIcon";
 
 const Navbar = () => {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
@@ -65,7 +64,7 @@ const Navbar = () => {
           <div className="flex items-center flex-shrink-0 lg:w-1/3">
             <a href="/" className="flex items-center">
               <img
-                className="h-12 w-auto"
+                className="h-14 w-auto"
                 src={!isDarkText ? "/logo_dark.png" : "/logo_light.png"}
                 alt="Logo"
               />
@@ -83,7 +82,6 @@ const Navbar = () => {
           </NavigationMenu.Root>
 
           <div className="hidden lg:flex items-center gap-4 justify-end w-1/3">
-            <MessageIcon isDarkText={isDarkText} />
             {user ? (
               <DropdownMenu.Root>
                 <DropdownMenu.Trigger asChild>
@@ -95,8 +93,14 @@ const Navbar = () => {
                         : "hover:bg-white/10 text-white"
                     }`}
                   >
-                    <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-                      <Text className="font-medium text-gray-700 text-xs">
+                    <div
+                      className={`w-7 h-7 rounded-full  flex items-center justify-center flex-shrink-0 ${
+                        !isDarkText
+                          ? "bg-gray-500 text-white"
+                          : "bg-white text-gray-900"
+                      }`}
+                    >
+                      <Text className="font-medium text-sm">
                         {user.name.charAt(0).toUpperCase()}
                       </Text>
                     </div>
@@ -211,7 +215,6 @@ const Navbar = () => {
                         <>
                           <div className="flex items-center justify-between">
                             <Text>{user.name}</Text>
-                            <MessageIcon isDarkText={false} />
                           </div>
                           <Button
                             variant="ghost"

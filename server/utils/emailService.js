@@ -7,7 +7,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 class EmailService {
   constructor() {
-    this.fromEmail = "noreply@exodrive.com";
+    this.fromEmail = "ExoDrive <noreply@exodrive.dk>";
   }
 
   async sendEmail({ to, subject, html, text }) {
@@ -24,8 +24,6 @@ class EmailService {
         html,
         text,
       });
-
-      console.log("Email sent successfully:", result);
       return { success: true, data: result };
     } catch (error) {
       console.error("Error sending email:", error);
@@ -54,8 +52,8 @@ class EmailService {
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background-color: #f8f9fd; padding: 30px; border-radius: 10px;">
             <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #ef4444; margin: 0; font-size: 28px;">ExoDrive</h1>
-              <p style="color: #666; margin: 5px 0 0 0;">Din bilmarkedsplads</p>
+              <img src="https://www.exodrive.dk/logo_dark.png" alt="ExoDrive" style="max-width: 200px; height: auto; margin-bottom: 10px;" />
+              <p style="color: #666; margin: 5px 0 0 0;">#1 markedsplads for sportsbiler</p>
             </div>
             
             <div style="background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
@@ -66,10 +64,20 @@ class EmailService {
               <div style="background-color: #f8f9fd; padding: 20px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #ef4444;">
                 <h3 style="margin: 0 0 10px 0; color: #333;">${listingTitle}</h3>
                 <p style="margin: 0; color: #666; font-style: italic;">"${messageContent}"</p>
+                <p style="color: #666; font-size: 12px">Dato: ${new Date().toLocaleDateString(
+                  "da-DK",
+                  {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  }
+                )}</p>
               </div>
               
               <div style="text-align: center; margin: 30px 0;">
-                <a href="https://exxdrive.dkve.dk/messages" 
+                <a href="https://exodrive.dk/messages" 
                    style="background-color: #ef4444; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
                   Se besked
                 </a>
@@ -79,7 +87,6 @@ class EmailService {
               
               <p style="color: #666; font-size: 14px; margin: 0;">
                 Du modtager denne email, fordi nogen har sendt dig en besked på ExoDrive. 
-                <br>Hvis du ikke ønsker at modtage disse notifikationer, kan du ændre dine indstillinger i din profil.
               </p>
             </div>
           </div>
@@ -122,8 +129,8 @@ Du modtager denne email, fordi nogen har sendt dig en besked på ExoDrive.
         <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background-color: #f8f9fd; padding: 30px; border-radius: 10px;">
             <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #ef4444; margin: 0; font-size: 28px;">ExoDrive</h1>
-              <p style="color: #666; margin: 5px 0 0 0;">Din bilmarkedsplads</p>
+              <img src="https://www.exodrive.dk/logo_dark.png" alt="ExoDrive" style="max-width: 200px; height: auto; margin-bottom: 10px;" />
+              <p style="color: #666; margin: 5px 0 0 0;">#1 markedsplads for sportsbiler</p>
             </div>
             
             <div style="background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">

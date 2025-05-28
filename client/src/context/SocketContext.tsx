@@ -32,19 +32,17 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 
   useEffect(() => {
     if (user?.token) {
-      const newSocket = io(config.apiUrl, {
+      const newSocket = io(config.socketUrl, {
         auth: {
           token: user.token,
         },
       });
 
       newSocket.on("connect", () => {
-        console.log("Connected to server");
         setIsConnected(true);
       });
 
       newSocket.on("disconnect", () => {
-        console.log("Disconnected from server");
         setIsConnected(false);
       });
 

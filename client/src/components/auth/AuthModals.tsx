@@ -1,10 +1,9 @@
 import React, { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { Callout } from "@radix-ui/themes";
 import * as Form from "@radix-ui/react-form";
-import { X, Mail, Lock, User, AlertCircle } from "lucide-react";
+import { X, Mail, Lock, User } from "lucide-react";
+import { toast } from "sonner";
 import { useAuth } from "../../context/AuthContext";
-import * as Toast from "@radix-ui/react-toast";
 import TextInput from "../TextInput";
 import Button from "../Button";
 
@@ -32,8 +31,6 @@ const AuthModals = ({
     password: "",
   });
   const [errors, setErrors] = useState<ValidationErrors>({});
-  const [serverError, setServerError] = useState<string | null>(null);
-  const [showToast, setShowToast] = useState(false);
   const { login, register } = useAuth();
 
   const validateForm = (): boolean => {
@@ -53,7 +50,7 @@ const AuthModals = ({
 
     if (!formData.password) {
       newErrors.password = "Adgangskode er påkrævet";
-    } else if (formData.password.length < 6) {
+    } else if (formData.password.length < 6 && view === "register") {
       newErrors.password = "Adgangskoden skal være mindst 6 tegn";
     }
 
@@ -63,7 +60,6 @@ const AuthModals = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setServerError(null);
 
     if (!validateForm()) {
       return;
@@ -72,15 +68,16 @@ const AuthModals = ({
     try {
       if (view === "login") {
         await login(formData.email, formData.password);
+        toast.success("Du er nu logget ind");
       } else {
         await register(formData.name, formData.email, formData.password);
+        toast.success("Din konto er blevet oprettet");
       }
       onClose();
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Der skete en fejl";
-      setServerError(errorMessage);
-      setShowToast(true);
+      toast.error(errorMessage);
     }
   };
 
@@ -103,19 +100,6 @@ const AuthModals = ({
                 </Button>
               </Dialog.Close>
             </div>
-
-            {serverError && (
-              <Callout.Root
-                color="red"
-                role="alert"
-                className="p-2 mb-2 rounded-md border flex items-center gap-2 text-sm"
-              >
-                <Callout.Icon>
-                  <AlertCircle size={16} />
-                </Callout.Icon>
-                <Callout.Text>{serverError}</Callout.Text>
-              </Callout.Root>
-            )}
 
             <Form.Root onSubmit={handleSubmit} className="space-y-4">
               {view === "register" && (
@@ -177,7 +161,6 @@ const AuthModals = ({
                     onClick={() => {
                       setView("register");
                       setErrors({});
-                      setServerError(null);
                     }}
                     className="text-red-500 hover:text-red-600 hover:underline font-medium"
                   >
@@ -192,7 +175,6 @@ const AuthModals = ({
                     onClick={() => {
                       setView("login");
                       setErrors({});
-                      setServerError(null);
                     }}
                     className="text-red-500 hover:text-red-600 hover:underline font-medium"
                   >
@@ -204,24 +186,6 @@ const AuthModals = ({
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>
-
-      <Toast.Root
-        className="bg-white rounded-lg shadow-lg p-4 items-center border border-gray-200 z-[9999]"
-        open={showToast}
-        onOpenChange={setShowToast}
-      >
-        <div className="flex gap-3">
-          <AlertCircle className="text-red-500" size={20} />
-          <div className="flex flex-col gap-1">
-            <Toast.Title className="font-medium">
-              {view === "login" ? "Login fejl" : "Registrering fejl"}
-            </Toast.Title>
-            <Toast.Description className="text-gray-600">
-              {serverError}
-            </Toast.Description>
-          </div>
-        </div>
-      </Toast.Root>
     </>
   );
 };

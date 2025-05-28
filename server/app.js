@@ -48,23 +48,17 @@ io.use((socket, next) => {
 });
 
 io.on("connection", (socket) => {
-  console.log(`User ${socket.userId} connected`);
-
   socket.join(`user_${socket.userId}`);
 
   socket.on("joinConversation", (conversationId) => {
     socket.join(`conversation_${conversationId}`);
-    console.log(`User ${socket.userId} joined conversation ${conversationId}`);
   });
 
   socket.on("leaveConversation", (conversationId) => {
     socket.leave(`conversation_${conversationId}`);
-    console.log(`User ${socket.userId} left conversation ${conversationId}`);
   });
 
-  socket.on("disconnect", () => {
-    console.log(`User ${socket.userId} disconnected`);
-  });
+  socket.on("disconnect", () => {});
 });
 
 const PORT = process.env.PORT || 5000;

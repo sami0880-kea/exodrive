@@ -92,7 +92,17 @@ router.get("/count", generalLimiter, async (req, res) => {
 
 router.get("/", generalLimiter, async (req, res) => {
   try {
-    const { brand, model, yearFrom, yearTo, priceFrom, priceTo } = req.query;
+    const {
+      brand,
+      model,
+      yearFrom,
+      yearTo,
+      priceFrom,
+      priceTo,
+      page = 1,
+      limit = 9,
+      sort = "-createdAt",
+    } = req.query;
 
     const filter = {};
 
@@ -111,10 +121,33 @@ router.get("/", generalLimiter, async (req, res) => {
       if (priceTo) filter.price.$lte = parseInt(priceTo);
     }
 
-    const listings = await Listing.find(filter)
-      .populate("user", "name email")
-      .sort({ createdAt: -1 });
-    res.send(listings);
+    let sortObj = {};
+    if (sort === "price-asc") sortObj = { price: 1 };
+    else if (sort === "price-desc") sortObj = { price: -1 };
+    else if (sort === "date-asc") sortObj = { createdAt: 1 };
+    else if (sort === "date-desc") sortObj = { createdAt: -1 };
+    else sortObj = { createdAt: -1 };
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const [listings, total] = await Promise.all([
+      Listing.find(filter)
+        .populate("user", "name email")
+        .sort(sortObj)
+        .skip(skip)
+        .limit(parseInt(limit)),
+      Listing.countDocuments(filter),
+    ]);
+
+    res.send({
+      listings,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / parseInt(limit)),
+      },
+    });
   } catch (error) {
     res.status(500).send({ message: error.message });
   }

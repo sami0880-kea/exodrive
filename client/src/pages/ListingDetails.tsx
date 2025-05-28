@@ -18,9 +18,9 @@ const Badge = ({
   icon: React.ElementType;
   text: string;
 }) => (
-  <div className="flex items-center gap-1 bg-gray-100 px-3 py-1.5 rounded-full text-sm">
-    <Icon size={16} className="text-gray-600" />
-    <span className="text-gray-700">{text}</span>
+  <div className="flex items-center gap-1.5 bg-gray-100 px-2 py-1 rounded text-sm">
+    <Icon size={14} className="text-gray-600" />
+    <span className="text-gray-700 capitalize">{text}</span>
   </div>
 );
 
@@ -104,7 +104,7 @@ const ListingDetails = () => {
                   {listing.brand} {listing.model}
                 </Text>
 
-                <div className="flex flex-wrap gap-2 mb-6">
+                <div className="flex flex-wrap gap-2 my-2">
                   <Badge icon={Tag} text={listing.version} />
                   <Badge icon={Gauge} text={listing.transmission} />
                   <Badge icon={Fuel} text={listing.fuelType} />
@@ -163,19 +163,21 @@ const ListingDetails = () => {
                         <Text size="2" className="text-gray-500 block">
                           Total for {listing.leaseDetails.duration} mdr
                         </Text>
-                        <div className="font-medium text-xl text-red-600">
+                        <div className="font-semibold text-xl text-gray-700">
                           {formatNumber(calculateTotalLeasePrice())}{" "}
-                          <span className="text-gray-500">kr</span>
+                          <span className="text-gray-500 text-[16px]">kr</span>
                         </div>
                       </div>
                       {listing.price && (
                         <div className="pt-3 border-t space-y-1.5">
                           <Text size="2" className="text-gray-500 block">
-                            Pris ved køb
+                            Købspris ekskl. registreringsafgift
                           </Text>
                           <div className="font-medium text-lg">
                             {formatNumber(listing.price)}{" "}
-                            <span className="text-gray-500">kr</span>
+                            <span className="text-gray-500 text-[16px]">
+                              kr
+                            </span>
                           </div>
                         </div>
                       )}

@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Card, Heading, Text } from "@radix-ui/themes";
-import { MessageCircle, Send } from "lucide-react";
+import { MessageCircle, Send, ExternalLink } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { formatDistanceToNow } from "date-fns";
+import { da } from "date-fns/locale";
 import axios from "axios";
 import config from "../config";
 import { useAuth } from "../context/AuthContext";
@@ -12,6 +15,7 @@ import { Conversation, Message } from "../types/message";
 const Messages: React.FC = () => {
   const { user } = useAuth();
   const { socket } = useSocket();
+  const navigate = useNavigate();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] =
     useState<Conversation | null>(null);
@@ -190,11 +194,20 @@ const Messages: React.FC = () => {
                           : "hover:bg-gray-50"
                       }`}
                     >
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-                          <Text className="font-medium text-gray-700">
-                            {otherParticipant?.name.charAt(0).toUpperCase()}
-                          </Text>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                          {conversation.listing.images &&
+                          conversation.listing.images.length > 0 ? (
+                            <img
+                              src={conversation.listing.images[0]}
+                              alt={`${conversation.listing.brand} ${conversation.listing.model}`}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <Text className="font-medium text-gray-700">
+                              {otherParticipant?.name.charAt(0).toUpperCase()}
+                            </Text>
+                          )}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1">
@@ -205,33 +218,49 @@ const Messages: React.FC = () => {
                               size="1"
                               className="text-gray-500 flex-shrink-0"
                             >
-                              {new Date(
-                                conversation.lastActivity
-                              ).toLocaleDateString("da-DK", {
-                                year: "numeric",
-                                month: "long",
-                                day: "numeric",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
+                              {formatDistanceToNow(
+                                new Date(conversation.lastActivity),
+                                {
+                                  addSuffix: true,
+                                  locale: da,
+                                }
+                              )}
                             </Text>
                           </div>
-                          <div className="space-y-1">
-                            <Text
-                              size="2"
-                              className="text-gray-600 truncate block font-medium"
-                            >
-                              {conversation.listing.brand}{" "}
-                              {conversation.listing.model}
-                            </Text>
-                            {conversation.lastMessage && (
+                          <div className="flex items-center justify-between space-y-0">
+                            <div>
                               <Text
-                                size="1"
-                                className="text-gray-500 truncate block"
+                                size="2"
+                                className="text-gray-600 truncate block font-medium"
                               >
-                                {conversation.lastMessage.content}
+                                {conversation.listing.brand}{" "}
+                                {conversation.listing.model}
                               </Text>
-                            )}
+                              {conversation.lastMessage && (
+                                <Text
+                                  size="1"
+                                  className="text-gray-500 truncate block"
+                                >
+                                  {conversation.lastMessage.content}
+                                </Text>
+                              )}
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(
+                                  `/listings/${conversation.listing._id}`
+                                );
+                              }}
+                              className="ml-2 whitespace-nowrap !border-gray-300 !text-gray-900 hover:!bg-gray-100 hover:!border-gray-400 hover:!text-gray-900"
+                            >
+                              <div className="flex items-center gap-1">
+                                <ExternalLink size={14} />
+                                <span>Gå til annonce</span>
+                              </div>
+                            </Button>
                           </div>
                         </div>
                       </div>
@@ -246,20 +275,47 @@ const Messages: React.FC = () => {
             {selectedConversation ? (
               <>
                 <div className="border-b pb-4 mb-4">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-                      <Text className="font-medium text-gray-700">
-                        {getOtherParticipant(selectedConversation)
-                          ?.name.charAt(0)
-                          .toUpperCase()}
-                      </Text>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                      {selectedConversation.listing.images &&
+                      selectedConversation.listing.images.length > 0 ? (
+                        <img
+                          src={selectedConversation.listing.images[0]}
+                          alt={`${selectedConversation.listing.brand} ${selectedConversation.listing.model}`}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <Text className="font-medium text-gray-700">
+                          {getOtherParticipant(selectedConversation)
+                            ?.name.charAt(0)
+                            .toUpperCase()}
+                        </Text>
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <Text className="font-medium block">
-                        {getOtherParticipant(selectedConversation)?.name}
-                      </Text>
+                      <div className="flex items-center justify-between">
+                        <Text className="font-medium block">
+                          {getOtherParticipant(selectedConversation)?.name}
+                        </Text>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            navigate(
+                              `/listings/${selectedConversation.listing._id}`
+                            )
+                          }
+                          className="ml-2 whitespace-nowrap !border-gray-300 !text-gray-900 hover:!bg-gray-100 hover:!border-gray-400 hover:!text-gray-900"
+                        >
+                          <div className="flex items-center gap-1">
+                            <ExternalLink size={14} />
+                            <span>Gå til annonce</span>
+                          </div>
+                        </Button>
+                      </div>
                       <Text size="2" className="text-gray-600 block">
-                        Angående: {selectedConversation.listing.title}
+                        {selectedConversation.listing.brand}{" "}
+                        {selectedConversation.listing.model}
                       </Text>
                     </div>
                   </div>

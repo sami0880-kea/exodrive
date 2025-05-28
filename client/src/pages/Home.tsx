@@ -112,11 +112,13 @@ const Home = () => {
 
   return (
     <div className="relative min-h-screen w-full">
-      <div className="h-[100vh] relative overflow-hidden">
+      <div className="h-[100vh] relative overflow-hidden bg-black">
         <img
-          src="https://images5.alphacoders.com/119/1190539.jpg"
+          // src="https://www.topgear.com/sites/default/files/2021/08/ROW02302.jpg"
+          // src="https://nuvomagazine.com/wp-content/uploads/2018/08/Group_Rome_Static_02.jpg"
+          src="assets/images/home_bg.jpg"
           alt="Luxury car"
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover opacity-60"
         />
         <div className="absolute inset-0 bg-black/30" />
       </div>
@@ -139,7 +141,7 @@ const Home = () => {
               </p>
             </div>
 
-            <div className="bg-white rounded-2xl md:rounded-full border md:pl-2 border-white/20 overflow-hidden w-full max-w-4xl shadow-xl">
+            <div className="bg-white rounded-2xl md:rounded-full border-2 md:pl-2 border-gray- overflow-hidden w-full max-w-4xl shadow-xl">
               <div className="flex flex-col">
                 <div className="flex flex-col md:flex-row">
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-0 divide-y md:divide-y-0 md:divide-x divide-gray-200 flex-1">

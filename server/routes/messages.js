@@ -57,15 +57,6 @@ router.get(
         .populate("receiver", "name email")
         .sort({ createdAt: 1 });
 
-      await Message.updateMany(
-        {
-          conversationId,
-          receiver: req.user._id,
-          isRead: false,
-        },
-        { isRead: true }
-      );
-
       res.json(messages);
     } catch (error) {
       console.error("Error fetching messages:", error);
@@ -150,45 +141,6 @@ router.post("/send", messageLimiter, protect, async (req, res) => {
     res.status(201).json(message);
   } catch (error) {
     console.error("Error sending message:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-router.put(
-  "/mark-read/:conversationId",
-  generalLimiter,
-  protect,
-  async (req, res) => {
-    try {
-      const { conversationId } = req.params;
-
-      await Message.updateMany(
-        {
-          conversationId,
-          receiver: req.user._id,
-          isRead: false,
-        },
-        { isRead: true }
-      );
-
-      res.json({ message: "Messages marked as read" });
-    } catch (error) {
-      console.error("Error marking messages as read:", error);
-      res.status(500).json({ message: "Server error" });
-    }
-  }
-);
-
-router.get("/unread-count", generalLimiter, protect, async (req, res) => {
-  try {
-    const count = await Message.countDocuments({
-      receiver: req.user._id,
-      isRead: false,
-    });
-
-    res.json({ count });
-  } catch (error) {
-    console.error("Error getting unread count:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
