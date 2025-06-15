@@ -90,6 +90,34 @@ router.get("/count", generalLimiter, async (req, res) => {
   }
 });
 
+router.get("/user/listings", protect, generalLimiter, async (req, res) => {
+  try {
+    const { page = 1, limit = 9 } = req.query;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const [listings, total] = await Promise.all([
+      Listing.find({ user: req.user._id })
+        .populate("user", "name email")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit)),
+      Listing.countDocuments({ user: req.user._id }),
+    ]);
+
+    res.send({
+      listings,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / parseInt(limit)),
+      },
+    });
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+});
+
 router.get("/", generalLimiter, async (req, res) => {
   try {
     const {
@@ -168,28 +196,58 @@ router.get("/:id", generalLimiter, async (req, res) => {
   }
 });
 
-router.patch("/:id", strictLimiter, protect, async (req, res) => {
+router.put("/:id", protect, async (req, res) => {
   try {
-    const listing = await Listing.findByIdAndUpdate(
-      req.params.id,
-      { ...req.body, updatedAt: Date.now() },
-      { new: true }
-    );
+    const listing = await Listing.findById(req.params.id);
+
     if (!listing) {
       return res.status(404).send({ message: "Listing not found" });
     }
-    res.send(listing);
+
+    if (listing.user.toString() !== req.user._id.toString()) {
+      return res
+        .status(403)
+        .send({ message: "Not authorized to edit this listing" });
+    }
+
+    const updatedData = {
+      ...req.body,
+      seller: {
+        name: req.body.seller?.name || listing.seller.name,
+        email: req.body.seller?.email || listing.seller.email,
+        phone: req.body.seller?.phone || listing.seller.phone,
+        location: req.body.seller?.location || listing.seller.location,
+      },
+      updatedAt: Date.now(),
+    };
+
+    const updatedListing = await Listing.findByIdAndUpdate(
+      req.params.id,
+      updatedData,
+      { new: true }
+    ).populate("user", "name email");
+
+    res.send(updatedListing);
   } catch (error) {
     res.status(400).send({ message: error.message });
   }
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", protect, async (req, res) => {
   try {
-    const listing = await Listing.findByIdAndDelete(req.params.id);
+    const listing = await Listing.findById(req.params.id);
+
     if (!listing) {
       return res.status(404).send({ message: "Listing not found" });
     }
+
+    if (listing.user.toString() !== req.user._id.toString()) {
+      return res
+        .status(403)
+        .send({ message: "Not authorized to delete this listing" });
+    }
+
+    await listing.deleteOne();
     res.send({ message: "Listing deleted" });
   } catch (error) {
     res.status(500).send({ message: error.message });

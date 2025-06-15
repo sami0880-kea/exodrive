@@ -245,22 +245,6 @@ const Messages: React.FC = () => {
                                 </Text>
                               )}
                             </div>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(
-                                  `/listings/${conversation.listing._id}`
-                                );
-                              }}
-                              className="ml-2 whitespace-nowrap !border-gray-300 !text-gray-900 hover:!bg-gray-100 hover:!border-gray-400 hover:!text-gray-900"
-                            >
-                              <div className="flex items-center gap-1">
-                                <ExternalLink size={14} />
-                                <span>Gå til annonce</span>
-                              </div>
-                            </Button>
                           </div>
                         </div>
                       </div>

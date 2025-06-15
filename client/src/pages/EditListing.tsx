@@ -1,7 +1,8 @@
+import { useState, useEffect, useRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { Heading, Text, Card } from "@radix-ui/themes";
 import { Formik, FormikHelpers } from "formik";
 import * as Yup from "yup";
-import { useState, useRef } from "react";
 import axios from "axios";
 import config from "../config";
 import { useAuth } from "../context/AuthContext";
@@ -13,15 +14,7 @@ import PriceView from "../components/sell/PriceView";
 import CarInfoView from "../components/sell/CarInfoView";
 import ContactView from "../components/sell/ContactView";
 import { FormValues } from "../types/sell";
-
-interface ImagePreview {
-  id: string;
-  file: File;
-  preview: string;
-}
-
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/svg+xml"];
+import { toast } from "sonner";
 
 const validationSchema = Yup.object().shape({
   title: Yup.string().required("Indtast titel"),
@@ -56,35 +49,6 @@ const validationSchema = Yup.object().shape({
       }),
   }),
 });
-
-const initialValues: FormValues = {
-  title: "",
-  listingType: "direct-sale",
-  brand: "",
-  model: "",
-  year: "",
-  price: null,
-  withVAT: true,
-  withRegistrationFee: true,
-  fuelType: "",
-  version: "",
-  isAutomatic: true,
-  transmission: "automatic",
-  images: [],
-  description: "",
-  leaseDetails: {
-    downPayment: 0,
-    monthlyPayment: 0,
-    duration: 12,
-    residualValue: 0,
-  },
-  seller: {
-    name: "",
-    email: "",
-    phone: "",
-    location: "",
-  },
-};
 
 const brands = [
   { value: "lamborghini", label: "Lamborghini" },
@@ -168,61 +132,6 @@ const steps = [
   },
 ];
 
-const insertMarkdown = (
-  type: string,
-  setFieldValue: (field: string, value: string) => void,
-  description: string
-) => {
-  const textarea = document.querySelector("textarea");
-  if (!textarea) return;
-
-  const start = textarea.selectionStart;
-  const end = textarea.selectionEnd;
-  const selectedText = description.substring(start, end);
-  let newText = description;
-
-  switch (type) {
-    case "bold":
-      newText =
-        description.substring(0, start) +
-        "**" +
-        selectedText +
-        "**" +
-        description.substring(end);
-      break;
-    case "italic":
-      newText =
-        description.substring(0, start) +
-        "*" +
-        selectedText +
-        "*" +
-        description.substring(end);
-      break;
-    case "link":
-      newText =
-        description.substring(0, start) +
-        "[" +
-        selectedText +
-        "](url)" +
-        description.substring(end);
-      break;
-    case "list":
-      newText =
-        description.substring(0, start) +
-        "\n- " +
-        selectedText +
-        description.substring(end);
-      break;
-  }
-
-  setFieldValue("description", newText);
-
-  setTimeout(() => {
-    textarea.focus();
-    textarea.setSelectionRange(start + 2, end + 2);
-  }, 0);
-};
-
 const handleNumberInput = (
   e: React.ChangeEvent<HTMLInputElement>,
   setFieldValue: (field: string, value: number) => void,
@@ -232,75 +141,74 @@ const handleNumberInput = (
   setFieldValue(field, Number(value));
 };
 
-const Sell = () => {
+const EditListing = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const { user } = useAuth();
-  const [imagePreviews, setImagePreviews] = useState<ImagePreview[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [initialValues, setInitialValues] = useState<FormValues | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  if (!user) {
-    return (
-      <ContentPage>
-        <div className="max-w-4xl mx-auto px-4 text-center py-12">
-          <Heading size="8" className="mb-4">
-            Log ind for at sælge din bil
-          </Heading>
-          <Text size="4" className="text-gray-600">
-            Du skal være logget ind for at oprette en annonce.
-          </Text>
-        </div>
-      </ContentPage>
-    );
-  }
+  useEffect(() => {
+    const fetchListing = async () => {
+      try {
+        const response = await axios.get(`${config.apiUrl}/listings/${id}`, {
+          headers: {
+            Authorization: `Bearer ${user?.token}`,
+          },
+        });
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
+        const listing = response.data;
 
-    const newPreviews: ImagePreview[] = [];
+        if (listing.user._id !== user?._id) {
+          navigate("/my-listings");
+          toast.error("Du har ikke adgang til at redigere denne annonce");
+          return;
+        }
 
-    Array.from(files).forEach((file) => {
-      if (file.size > MAX_FILE_SIZE) {
-        setError(`File ${file.name} is too large. Maximum size is 5MB`);
-        return;
+        setInitialValues({
+          title: listing.title,
+          listingType: listing.listingType,
+          brand: listing.brand,
+          model: listing.model,
+          year: listing.year.toString(),
+          price: listing.price,
+          withVAT: listing.withVAT,
+          withRegistrationFee: listing.withRegistrationFee,
+          fuelType: listing.fuelType,
+          version: listing.version,
+          isAutomatic: listing.transmission === "automatic",
+          transmission: listing.transmission,
+          description: listing.description,
+          images: [],
+          leaseDetails: listing.leaseDetails || {
+            downPayment: 0,
+            monthlyPayment: 0,
+            duration: 12,
+            residualValue: 0,
+          },
+          seller: {
+            name: user?.name || "",
+            email: user?.email || "",
+            phone: listing.seller.phone,
+            location: listing.seller.location,
+          },
+        });
+      } catch (err) {
+        console.error("Error fetching listing:", err);
+        setError("Kunne ikke hente annoncen");
+      } finally {
+        setLoading(false);
       }
+    };
 
-      if (!ALLOWED_TYPES.includes(file.type)) {
-        setError(`File ${file.name} is not a supported image type`);
-        return;
-      }
-
-      const preview = URL.createObjectURL(file);
-      newPreviews.push({
-        id: `${file.name}-${Date.now()}`,
-        file,
-        preview,
-      });
-    });
-
-    if (newPreviews.length > 0) {
-      setImagePreviews((prev) => [...prev, ...newPreviews]);
-      setError(null);
+    if (user && id) {
+      fetchListing();
     }
-  };
-
-  const removeImage = (id: string) => {
-    setImagePreviews((prev) => {
-      const imageToRemove = prev.find((img) => img.id === id);
-      if (imageToRemove) {
-        URL.revokeObjectURL(imageToRemove.preview);
-      }
-      return prev.filter((img) => img.id !== id);
-    });
-  };
-
-  const handleStepClick = (step: number) => {
-    if (step < currentStep) {
-      setCurrentStep(step);
-    }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, id]);
 
   const validateStep = (values: FormValues, step: number): boolean => {
     switch (step) {
@@ -318,12 +226,7 @@ const Sell = () => {
           );
         }
       case 2:
-        return !!(
-          values.fuelType &&
-          values.version &&
-          values.description &&
-          values.images.length > 0
-        );
+        return !!(values.fuelType && values.version && values.description);
       case 3:
         return !!(values.seller.phone && values.seller.location);
       default:
@@ -341,17 +244,58 @@ const Sell = () => {
     setCurrentStep((prev) => Math.max(prev - 1, 0));
   };
 
+  if (!user) {
+    return (
+      <ContentPage>
+        <div className="max-w-4xl mx-auto px-4 text-center py-12">
+          <Heading size="8" className="mb-4">
+            Log ind for at redigere din annonce
+          </Heading>
+          <Text size="4" className="text-gray-600">
+            Du skal være logget ind for at redigere din annonce.
+          </Text>
+        </div>
+      </ContentPage>
+    );
+  }
+
+  if (loading) {
+    return (
+      <ContentPage>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Text>Loading...</Text>
+        </div>
+      </ContentPage>
+    );
+  }
+
+  if (error || !initialValues) {
+    return (
+      <ContentPage>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Text className="text-red-500">
+            {error || "Kunne ikke hente annoncen"}
+          </Text>
+        </div>
+      </ContentPage>
+    );
+  }
+
   return (
     <ContentPage>
       <div className="max-w-4xl mx-auto px-4">
         <Heading size="8" className="mb-6">
-          Sælg din bil
+          Rediger annonce
         </Heading>
 
         <Stepper
           steps={steps}
           currentStep={currentStep}
-          onStepClick={handleStepClick}
+          onStepClick={(step) => {
+            if (step < currentStep) {
+              setCurrentStep(step);
+            }
+          }}
         />
 
         <Formik<FormValues>
@@ -362,11 +306,6 @@ const Sell = () => {
             { setSubmitting }: FormikHelpers<FormValues>
           ) => {
             try {
-              setIsSubmitting(true);
-              setError(null);
-
-              const formData = new FormData();
-
               const listingData = {
                 listingType: values.listingType,
                 brand: values.brand,
@@ -381,6 +320,8 @@ const Sell = () => {
                 withVAT: values.withVAT,
                 withRegistrationFee: values.withRegistrationFee,
                 seller: {
+                  name: user?.name || "",
+                  email: user?.email || "",
                   phone: values.seller.phone,
                   location: values.seller.location,
                 },
@@ -406,45 +347,40 @@ const Sell = () => {
                 }),
               };
 
-              formData.append("listingData", JSON.stringify(listingData));
-
-              values.images.forEach((file) => {
-                formData.append("images", file);
+              await axios.put(`${config.apiUrl}/listings/${id}`, listingData, {
+                headers: {
+                  Authorization: `Bearer ${user.token}`,
+                },
               });
 
-              const response = await axios.post(
-                config.apiUrl + "/listings",
-                formData,
-                {
-                  headers: {
-                    "Content-Type": "multipart/form-data",
-                    Authorization: `Bearer ${user.token}`,
-                  },
-                }
-              );
-
-              if (response.status === 201) {
-                window.location.href = "/";
-              }
-            } catch (err: unknown) {
-              console.error("Error submitting form:", err);
-              if (axios.isAxiosError(err)) {
-                const errorMessage =
-                  err.response?.data?.message ||
-                  "An error occurred while creating the listing";
-                console.error("Error details:", errorMessage);
-                setError(errorMessage);
-              } else {
-                setError("An unexpected error occurred");
-              }
+              toast.success("Annonce opdateret");
+              navigate("/my-listings");
+            } catch (err) {
+              console.error("Error updating listing:", err);
+              toast.error("Kunne ikke opdatere annoncen");
             } finally {
-              setIsSubmitting(false);
               setSubmitting(false);
             }
           }}
         >
-          {({ values, errors, touched, setFieldValue, handleSubmit }) => (
-            <form className="space-y-6" onSubmit={handleSubmit}>
+          {({
+            values,
+            errors,
+            touched,
+            setFieldValue,
+            handleSubmit,
+            isSubmitting,
+          }) => (
+            <form
+              className="space-y-6"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (currentStep === steps.length - 1) {
+                  handleSubmit(e);
+                }
+              }}
+              noValidate
+            >
               <Card className="p-6">
                 <div className="space-y-6">
                   {currentStep === 0 && (
@@ -477,14 +413,14 @@ const Sell = () => {
                       setFieldValue={setFieldValue}
                       fuelTypes={fuelTypes}
                       versions={versions}
-                      imagePreviews={imagePreviews}
-                      error={error}
+                      imagePreviews={[]}
+                      error={null}
                       fileInputRef={
                         fileInputRef as React.RefObject<HTMLInputElement>
                       }
-                      handleImageSelect={handleImageSelect}
-                      removeImage={removeImage}
-                      insertMarkdown={insertMarkdown}
+                      handleImageSelect={() => {}}
+                      removeImage={() => {}}
+                      insertMarkdown={() => {}}
                     />
                   )}
 
@@ -509,14 +445,17 @@ const Sell = () => {
                     {currentStep < steps.length - 1 ? (
                       <Button
                         type="button"
-                        onClick={() => handleNext(values)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleNext(values);
+                        }}
                         disabled={!validateStep(values, currentStep)}
                       >
                         Næste
                       </Button>
                     ) : (
                       <Button type="submit" disabled={isSubmitting}>
-                        {isSubmitting ? "Opretter annonce..." : "Opret annonce"}
+                        {isSubmitting ? "Gemmer ændringer..." : "Gem ændringer"}
                       </Button>
                     )}
                   </div>
@@ -530,4 +469,4 @@ const Sell = () => {
   );
 };
 
-export default Sell;
+export default EditListing;

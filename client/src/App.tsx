@@ -10,6 +10,8 @@ import Sell from "./pages/Sell";
 import Listings from "./pages/Listings";
 import ListingDetails from "./pages/ListingDetails";
 import Messages from "./pages/Messages";
+import MyListings from "./pages/MyListings";
+import EditListing from "./pages/EditListing";
 
 function App() {
   return (
@@ -26,6 +28,8 @@ function App() {
                 <Route path="/listings" element={<Listings />} />
                 <Route path="/listings/:id" element={<ListingDetails />} />
                 <Route path="/messages" element={<Messages />} />
+                <Route path="/my-listings" element={<MyListings />} />
+                <Route path="/edit-listing/:id" element={<EditListing />} />
               </Routes>
             </div>
           </SocketProvider>

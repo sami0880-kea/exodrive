@@ -1,14 +1,26 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { Card, Heading, Text } from "@radix-ui/themes";
-import { Fuel, Gauge, Tag, MapPin, Phone, Calendar } from "lucide-react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Card, Heading, Text, Dialog } from "@radix-ui/themes";
+import {
+  Fuel,
+  Gauge,
+  Tag,
+  MapPin,
+  Phone,
+  Calendar,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import axios from "axios";
+import { toast } from "sonner";
 import config from "../config";
 import { Listing } from "../types/listing";
+import { useAuth } from "../context/AuthContext";
 import ContentPage from "../components/ContentPage";
 import ImageWithFallback from "../components/ImageWithFallback";
 import ContactInfo from "../components/ContactInfo";
 import MessageButton from "../components/MessageButton";
+import Button from "../components/Button";
 import { formatNumber } from "../lib/utils";
 
 const Badge = ({
@@ -26,9 +38,13 @@ const Badge = ({
 
 const ListingDetails = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [listing, setListing] = useState<Listing | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const fetchListing = async () => {
@@ -77,6 +93,33 @@ const ListingDetails = () => {
     );
   };
 
+  const handleEdit = () => {
+    navigate(`/edit-listing/${id}`);
+  };
+
+  const handleDelete = async () => {
+    if (!id || !user) return;
+
+    try {
+      setIsDeleting(true);
+      await axios.delete(`${config.apiUrl}/listings/${id}`, {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
+      toast.success("Annonce slettet");
+      navigate("/my-listings");
+    } catch (err) {
+      console.error("Error deleting listing:", err);
+      toast.error("Kunne ikke slette annoncen");
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
+    }
+  };
+
+  const isOwner = user && listing?.user?._id === user._id;
+
   return (
     <ContentPage>
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -97,9 +140,31 @@ const ListingDetails = () => {
               </div>
 
               <div className="mt-8">
-                <Heading size="8" className="mb-2">
-                  {listing.title}
-                </Heading>
+                <div className="flex items-center justify-between mb-2">
+                  <Heading size="8">{listing.title}</Heading>
+                  {isOwner && (
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleEdit}
+                        className="flex items-center gap-1.5"
+                      >
+                        <Pencil size={16} />
+                        Rediger
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowDeleteDialog(true)}
+                        className="flex items-center gap-1.5 text-red-500 hover:text-red-600 hover:border-red-600"
+                      >
+                        <Trash2 size={16} />
+                        Slet
+                      </Button>
+                    </div>
+                  )}
+                </div>
                 <Text size="3" className="text-gray-600 capitalize mb-6">
                   {listing.brand} {listing.model}
                 </Text>
@@ -212,10 +277,14 @@ const ListingDetails = () => {
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
                         <Text className="font-medium text-gray-700">
-                          {listing.seller.name.charAt(0).toUpperCase()}
+                          {listing.seller.name
+                            ? listing.seller.name.charAt(0).toUpperCase()
+                            : "?"}
                         </Text>
                       </div>
-                      <Text className="font-medium">{listing.seller.name}</Text>
+                      <Text className="font-medium">
+                        {listing.seller.name || "Anonym sælger"}
+                      </Text>
                     </div>
                     {listing.seller.location && (
                       <ContactInfo
@@ -256,6 +325,34 @@ const ListingDetails = () => {
           </div>
         </Card>
       </div>
+
+      <Dialog.Root open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <Dialog.Content style={{ maxWidth: 450 }}>
+          <Dialog.Title>Slet annonce</Dialog.Title>
+          <Dialog.Description size="2" mb="4">
+            Er du sikker på, at du vil slette denne annonce? Denne handling kan
+            ikke fortrydes.
+          </Dialog.Description>
+
+          <div className="flex justify-end gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteDialog(false)}
+              disabled={isDeleting}
+            >
+              Annuller
+            </Button>
+            <Button
+              variant="default"
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-red-500 hover:bg-red-600"
+            >
+              {isDeleting ? "Sletter..." : "Slet annonce"}
+            </Button>
+          </div>
+        </Dialog.Content>
+      </Dialog.Root>
     </ContentPage>
   );
 };

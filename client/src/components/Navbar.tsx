@@ -129,6 +129,13 @@ const Navbar = () => {
                       <MessageCircle size={16} className="text-gray-500" />
                       <span className="font-medium">Mine Beskeder</span>
                     </DropdownMenu.Item>
+                    <DropdownMenu.Item
+                      className="flex items-center gap-3 text-gray-700 hover:bg-gray-50 px-3 py-2.5 rounded-md cursor-pointer outline-none transition-colors"
+                      onClick={() => navigate("/my-listings")}
+                    >
+                      <Car size={16} className="text-gray-500" />
+                      <span className="font-medium">Mine Annoncer</span>
+                    </DropdownMenu.Item>
                     <DropdownMenu.Separator className="h-px bg-gray-200 my-1" />
                     <DropdownMenu.Item
                       className="flex items-center gap-3 text-gray-700 hover:bg-gray-50 px-3 py-2.5 rounded-md cursor-pointer outline-none transition-colors"
@@ -229,6 +236,14 @@ const Navbar = () => {
                               className="text-gray-500"
                             />
                             <Text>Mine Beskeder</Text>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            className="w-full hover:bg-gray-50 flex items-center justify-start gap-3"
+                            onClick={() => navigate("/my-listings")}
+                          >
+                            <Car size={16} className="text-gray-500" />
+                            <Text>Mine Annoncer</Text>
                           </Button>
                           <Button
                             variant="ghost"
