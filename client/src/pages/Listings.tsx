@@ -23,6 +23,36 @@ const sortOptions = [
   { value: "price-asc", label: "Laveste pris først" },
 ];
 
+const ListingSkeleton = () => {
+  return (
+    <Card className="overflow-hidden h-full flex flex-col">
+      <div className="h-[230px] bg-gray-200 animate-pulse rounded-md" />
+      <div className="px-2 py-4 flex flex-col flex-1">
+        <div className="mb-2">
+          <div className="h-6 bg-gray-200 animate-pulse rounded mb-1" />
+          <div className="h-4 bg-gray-200 animate-pulse rounded w-2/3" />
+        </div>
+
+        <div className="flex flex-wrap gap-2 mb-4">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="h-6 bg-gray-200 animate-pulse rounded w-20"
+            />
+          ))}
+        </div>
+
+        <div className="mt-auto">
+          <div className="border rounded-lg p-3 bg-gray-50 space-y-1.5">
+            <div className="h-3 bg-gray-200 animate-pulse rounded w-12 mb-2" />
+            <div className="h-6 bg-gray-200 animate-pulse rounded w-28" />
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
+};
+
 const Listings = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [listings, setListings] = useState<Listing[]>([]);
@@ -91,8 +121,19 @@ const Listings = () => {
   if (loading) {
     return (
       <ContentPage>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <Text>Loading...</Text>
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div className="h-6 bg-gray-200 animate-pulse rounded w-32" />
+              <div className="h-10 bg-gray-200 animate-pulse rounded w-[200px]" />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array.from({ length: 9 }, (_, i) => (
+                <ListingSkeleton key={i} />
+              ))}
+            </div>
+          </Card>
         </div>
       </ContentPage>
     );

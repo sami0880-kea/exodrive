@@ -12,6 +12,86 @@ import ContentPage from "../components/ContentPage";
 import Button from "../components/Button";
 import { Conversation, Message } from "../types/message";
 
+const ConversationSkeleton = () => {
+  return (
+    <div className="p-3 rounded-lg">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse flex-shrink-0" />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between mb-1">
+            <div className="h-4 bg-gray-200 animate-pulse rounded w-24" />
+            <div className="h-3 bg-gray-200 animate-pulse rounded w-16" />
+          </div>
+          <div className="space-y-1">
+            <div className="h-4 bg-gray-200 animate-pulse rounded w-32" />
+            <div className="h-3 bg-gray-200 animate-pulse rounded w-40" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const MessageSkeleton = ({ align = "start" }: { align?: "start" | "end" }) => {
+  return (
+    <div className={`flex justify-${align}`}>
+      <div className="max-w-xs lg:max-w-md">
+        <div className="h-20 bg-gray-200 animate-pulse rounded-lg w-64" />
+      </div>
+    </div>
+  );
+};
+
+const MessagesLoadingSkeleton = () => {
+  return (
+    <ContentPage>
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="h-8 bg-gray-200 animate-pulse rounded w-48 mb-6" />
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[600px]">
+          <Card className="p-4 overflow-y-auto">
+            <div className="h-6 bg-gray-200 animate-pulse rounded w-24 mb-4" />
+            <div className="space-y-2">
+              {Array.from({ length: 5 }, (_, i) => (
+                <ConversationSkeleton key={i} />
+              ))}
+            </div>
+          </Card>
+
+          <Card className="lg:col-span-2 p-4 flex flex-col">
+            <div className="border-b pb-4 mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <div className="h-4 bg-gray-200 animate-pulse rounded w-32" />
+                    <div className="h-8 bg-gray-200 animate-pulse rounded w-32" />
+                  </div>
+                  <div className="h-4 bg-gray-200 animate-pulse rounded w-40 mt-1" />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto mb-4 space-y-4">
+              {Array.from({ length: 6 }, (_, i) => (
+                <MessageSkeleton
+                  key={i}
+                  align={i % 2 === 0 ? "start" : "end"}
+                />
+              ))}
+            </div>
+
+            <div className="flex gap-2">
+              <div className="flex-1 h-10 bg-gray-200 animate-pulse rounded" />
+              <div className="h-10 bg-gray-200 animate-pulse rounded w-24" />
+            </div>
+          </Card>
+        </div>
+      </div>
+    </ContentPage>
+  );
+};
+
 const Messages: React.FC = () => {
   const { user } = useAuth();
   const { socket } = useSocket();
@@ -151,13 +231,7 @@ const Messages: React.FC = () => {
   }
 
   if (loading) {
-    return (
-      <ContentPage>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <Text>Loading...</Text>
-        </div>
-      </ContentPage>
-    );
+    return <MessagesLoadingSkeleton />;
   }
 
   return (
@@ -241,7 +315,12 @@ const Messages: React.FC = () => {
                                   size="1"
                                   className="text-gray-500 truncate block"
                                 >
-                                  {conversation.lastMessage.content}
+                                  {conversation.lastMessage.content.length > 80
+                                    ? `${conversation.lastMessage.content.slice(
+                                        0,
+                                        80
+                                      )}...`
+                                    : conversation.lastMessage.content}
                                 </Text>
                               )}
                             </div>
