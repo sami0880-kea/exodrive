@@ -256,17 +256,20 @@ const Navbar = () => {
                         </>
                       ) : (
                         <Button
-                          variant="ghost"
-                          className="w-full hover:bg-gray-50"
-                          onClick={() => setAuthModalOpen(true)}
+                          variant="solid"
+                          className="w-full p-2 rounded-md bg-gray-200 hover:bg-gray-50"
+                          onClick={() => {
+                            setAuthModalOpen(true);
+                            setMobileDrawerOpen(false);
+                          }}
                         >
-                          <Text>Log ind</Text>
+                          <Text className="font-medium">Log ind</Text>
                           <User size={16} strokeWidth={2} className="ml-2" />
                         </Button>
                       )}
                       <Button
                         variant="solid"
-                        className="w-full transition-all duration-200 border-0 bg-red-500 hover:bg-red-600"
+                        className="w-full p-2 rounded-md transition-all duration-200 border-0 bg-red-500 hover:bg-red-600"
                         onClick={() => {
                           if (user) {
                             navigate("/sell");
@@ -277,7 +280,6 @@ const Navbar = () => {
                           }
                         }}
                       >
-                        <Car size={16} strokeWidth={2} className="mr-2" />
                         <Text className="text-white font-medium">
                           Sælg din bil
                         </Text>

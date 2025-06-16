@@ -3,7 +3,7 @@ import { Heading, Button } from "@radix-ui/themes";
 import * as Select from "@radix-ui/react-select";
 import * as Slider from "@radix-ui/react-slider";
 import { Search, X } from "lucide-react";
-import { cn } from "../lib/utils";
+import { cn, formatNumber } from "../lib/utils";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import config from "../config";
@@ -16,10 +16,6 @@ const Home = () => {
   const [yearRange, setYearRange] = useState<number[]>([2000, currentYear + 1]);
   const [priceRange, setPriceRange] = useState<number[]>([0, 10000000]);
   const [listingCount, setListingCount] = useState<number>(0);
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("da-DK").format(price);
-  };
 
   const resetYearRange = () => setYearRange([2000, currentYear + 1]);
   const resetPriceRange = () => setPriceRange([0, 10000000]);
@@ -123,13 +119,13 @@ const Home = () => {
         <div className="absolute inset-0 bg-black/30" />
       </div>
 
-      <div className="absolute inset-0 flex items-center justify-center">
+      <div className="absolute inset-0 flex items-center justify-center mt-48 md:mt-0">
         <div className="w-full max-w-7xl mx-4 relative">
           <div className="flex flex-col items-center justify-center gap-16 -translate-y-20">
             <div className="flex flex-col items-center">
               <Heading
                 align="center"
-                size="9"
+                size={{ lg: "9", sm: "8" }}
                 weight="bold"
                 className="text-white"
               >
@@ -390,7 +386,7 @@ const Home = () => {
                         <div className="text-[inherit] text-gray-500 mt-1">
                           {priceRange[0] === 0 && priceRange[1] === 10000000
                             ? "Alle priser"
-                            : `${formatPrice(priceRange[0])} - ${formatPrice(
+                            : `${formatNumber(priceRange[0])} - ${formatNumber(
                                 priceRange[1]
                               )}`}
                         </div>

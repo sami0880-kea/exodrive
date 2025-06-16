@@ -95,7 +95,7 @@ const AuthModals = ({
                 {view === "login" ? "Log ind" : "Opret konto"}
               </Dialog.Title>
               <Dialog.Close asChild>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="sm">
                   <X size={20} />
                 </Button>
               </Dialog.Close>
