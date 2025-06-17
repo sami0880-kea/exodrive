@@ -13,6 +13,9 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { FreeMode, Navigation, Thumbs } from "swiper/modules";
+import type { Swiper as SwiperType } from "swiper";
 import config from "../config";
 import { Listing } from "../types/listing";
 import { useAuth } from "../context/AuthContext";
@@ -45,6 +48,7 @@ const ListingDetails = () => {
   const [error, setError] = useState<string | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [thumbsSwiper, setThumbsSwiper] = useState<SwiperType | null>(null);
 
   useEffect(() => {
     const fetchListing = async () => {
@@ -126,15 +130,55 @@ const ListingDetails = () => {
         <Card className="p-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
-              <div className="aspect-[16/9] relative rounded-lg overflow-hidden">
-                <ImageWithFallback
-                  src={listing.images[0]}
-                  alt={listing.title}
-                  className="w-full h-full object-cover"
-                />
-                {listing.listingType === "lease" && (
-                  <div className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1.5 rounded-full text-sm font-medium">
-                    Leasing
+              <div className="space-y-4">
+                <div className="aspect-[16/9] relative rounded-lg overflow-hidden">
+                  <Swiper
+                    spaceBetween={10}
+                    navigation={true}
+                    thumbs={{ swiper: thumbsSwiper }}
+                    modules={[FreeMode, Navigation, Thumbs]}
+                    className="h-full"
+                  >
+                    {listing.images.map((image, index) => (
+                      <SwiperSlide key={index}>
+                        <ImageWithFallback
+                          src={image}
+                          alt={`${listing.title} - Image ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                        {index === 0 && listing.listingType === "lease" && (
+                          <div className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1.5 rounded-full text-sm font-medium">
+                            Leasing
+                          </div>
+                        )}
+                      </SwiperSlide>
+                    ))}
+                  </Swiper>
+                </div>
+
+                {listing.images.length > 1 && (
+                  <div className="h-24">
+                    <Swiper
+                      onSwiper={setThumbsSwiper}
+                      spaceBetween={10}
+                      slidesPerView={4}
+                      freeMode={true}
+                      watchSlidesProgress={true}
+                      modules={[FreeMode, Navigation, Thumbs]}
+                      className="thumbs-swiper h-full"
+                    >
+                      {listing.images.map((image, index) => (
+                        <SwiperSlide key={index}>
+                          <div className="h-full cursor-pointer rounded-lg overflow-hidden">
+                            <ImageWithFallback
+                              src={image}
+                              alt={`${listing.title} - Thumbnail ${index + 1}`}
+                              className="w-full h-full object-cover hover:opacity-80 transition-opacity"
+                            />
+                          </div>
+                        </SwiperSlide>
+                      ))}
+                    </Swiper>
                   </div>
                 )}
               </div>

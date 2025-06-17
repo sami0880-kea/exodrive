@@ -118,7 +118,7 @@ const Messages: React.FC = () => {
           selectedConversation &&
           message.conversationId === selectedConversation.conversationId
         ) {
-          setMessages((prev) => [...prev, message]);
+          setMessages(prev => [...prev, message]);
         }
         fetchConversations();
       });
@@ -128,7 +128,7 @@ const Messages: React.FC = () => {
           selectedConversation &&
           message.conversationId === selectedConversation.conversationId
         ) {
-          setMessages((prev) => [...prev, message]);
+          setMessages(prev => [...prev, message]);
         }
       });
 
@@ -186,7 +186,7 @@ const Messages: React.FC = () => {
     setSendingMessage(true);
     try {
       const otherParticipant = selectedConversation.participants.find(
-        (p) => p._id !== user._id
+        p => p._id !== user._id
       );
 
       await axios.post(
@@ -212,7 +212,7 @@ const Messages: React.FC = () => {
   };
 
   const getOtherParticipant = (conversation: Conversation) => {
-    return conversation.participants.find((p) => p._id !== user?._id);
+    return conversation.participants.find(p => p._id !== user?._id);
   };
 
   if (!user) {
@@ -256,7 +256,7 @@ const Messages: React.FC = () => {
               </div>
             ) : (
               <div className="space-y-2">
-                {conversations.map((conversation) => {
+                {conversations.map(conversation => {
                   const otherParticipant = getOtherParticipant(conversation);
                   return (
                     <div
@@ -270,7 +270,7 @@ const Messages: React.FC = () => {
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                          {conversation.listing.images &&
+                          {conversation?.listing?.images &&
                           conversation.listing.images.length > 0 ? (
                             <img
                               src={conversation.listing.images[0]}
@@ -307,18 +307,18 @@ const Messages: React.FC = () => {
                                 size="2"
                                 className="text-gray-600 truncate block font-medium"
                               >
-                                {conversation.listing.brand}{" "}
-                                {conversation.listing.model}
+                                {conversation?.listing?.brand}{" "}
+                                {conversation?.listing?.model}
                               </Text>
                               {conversation.lastMessage && (
                                 <Text
                                   size="1"
                                   className="text-gray-500 truncate block"
                                 >
-                                  {conversation.lastMessage.content.length > 80
+                                  {conversation.lastMessage.content.length > 40
                                     ? `${conversation.lastMessage.content.slice(
                                         0,
-                                        80
+                                        40
                                       )}...`
                                     : conversation.lastMessage.content}
                                 </Text>
@@ -340,8 +340,8 @@ const Messages: React.FC = () => {
                 <div className="border-b pb-4 mb-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                      {selectedConversation.listing.images &&
-                      selectedConversation.listing.images.length > 0 ? (
+                      {selectedConversation?.listing?.images &&
+                      selectedConversation?.listing?.images?.length > 0 ? (
                         <img
                           src={selectedConversation.listing.images[0]}
                           alt={`${selectedConversation.listing.brand} ${selectedConversation.listing.model}`}
@@ -377,15 +377,15 @@ const Messages: React.FC = () => {
                         </Button>
                       </div>
                       <Text size="2" className="text-gray-600 block">
-                        {selectedConversation.listing.brand}{" "}
-                        {selectedConversation.listing.model}
+                        {selectedConversation?.listing?.brand}{" "}
+                        {selectedConversation?.listing?.model}
                       </Text>
                     </div>
                   </div>
                 </div>
 
                 <div className="flex-1 overflow-y-auto mb-4 space-y-4">
-                  {messages.map((message) => (
+                  {messages.map(message => (
                     <div
                       key={message._id}
                       className={`flex ${
@@ -427,7 +427,7 @@ const Messages: React.FC = () => {
                   <input
                     type="text"
                     value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
+                    onChange={e => setNewMessage(e.target.value)}
                     placeholder="Skriv en besked..."
                     className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-red-500 focus:border-red-500"
                     disabled={sendingMessage}

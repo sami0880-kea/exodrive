@@ -47,14 +47,14 @@ io.use((socket, next) => {
   }
 });
 
-io.on("connection", (socket) => {
+io.on("connection", socket => {
   socket.join(`user_${socket.userId}`);
 
-  socket.on("joinConversation", (conversationId) => {
+  socket.on("joinConversation", conversationId => {
     socket.join(`conversation_${conversationId}`);
   });
 
-  socket.on("leaveConversation", (conversationId) => {
+  socket.on("leaveConversation", conversationId => {
     socket.leave(`conversation_${conversationId}`);
   });
 

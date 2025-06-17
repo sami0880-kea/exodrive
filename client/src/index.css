@@ -1,8 +1,55 @@
 @import "@radix-ui/themes/styles.css";
+@import "swiper/css";
+@import "swiper/css/free-mode";
+@import "swiper/css/navigation";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 .radix-themes {
   --cursor-button: pointer;
+}
+
+/* Swiper styles */
+.swiper {
+  width: 100%;
+  height: 100%;
+}
+
+.swiper-slide {
+  text-align: center;
+  background: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.thumbs-swiper .swiper-slide {
+  opacity: 0.4;
+}
+
+.thumbs-swiper .swiper-slide-thumb-active {
+  opacity: 1;
+}
+
+.swiper-button-next,
+.swiper-button-prev {
+  color: white !important;
+  background: rgba(0, 0, 0, 0.3);
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50%;
+}
+
+.swiper-button-next:after,
+.swiper-button-prev:after {
+  font-size: 20px !important;
+}
+
+.swiper-button-next {
+  right: 10px !important;
+}
+
+.swiper-button-prev {
+  left: 10px !important;
 }
